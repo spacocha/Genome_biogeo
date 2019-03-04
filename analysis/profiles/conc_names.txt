@@ -1,0 +1,10 @@
+O
+C
+N+
+N-
+S+
+S-
+Fe+
+Fe-
+CH4
+null
