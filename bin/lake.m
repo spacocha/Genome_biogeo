@@ -101,10 +101,62 @@ ma_op_deltaG0 = ma_op_rxns(:, 16)’;
 % matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor]
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
-% genome_length = randi(Gmax)
+
+div_mat=zeros(Cmax, 11);
+
+for x = 1: Cmax
+   %set the copies to 1;
+   div_mat(x, 1)=1;
+   genome_length = randi(Gmax);
+   div_mat(x, 2)=genome_length;
+   genome_compo = randi(Pmax,genome_length,1);
+   % set up the rows of div_mat according to genome composition
+   %cox is gene 1
+   if ismember(1,genome_compo)
+      div_mat(x,3)=1;
+   end
+   %nar is gene 2
+   if ismember(2,genome_compo)
+      div_mat(x,4)=1;
+   end
+   %nir is gene 3
+   if ismember(3, genome_compo)
+      div_mat(x,5)=1;
+   end
+   %nrf is gene 4
+   if ismember(4, genome_compo)
+      div_mat(x, 6)=1;
+   end
+   %dsr is gene 5
+   if ismember(5, genome_compo)
+      div_mat(x, 7)=1;
+   end
+   %rbcl is gene 6
+   if ismember(6, genome_compo)
+      %nap is gene 7 
+      if ismember(7, genome_compo)
+         div_mat(x, 8)=1;
+      end
+      %sox is gene 8
+      if ismember(8, genome_compo)
+         div_mat(x, 9)=1;
+      end
+      %amoA is gene 9
+      if ismember(9, genome_compo)
+         div_mat(x, 10)=1;
+      end
+      %hzo is gene 10
+      if ismember(10, genome_compo)
+         div_mat(x,11)=1;
+      end
+      %nor is gene 11
+      if ismember(11, genome_compo)
+         div_mat(x, 12)=1;
+      end
+   end
+end
 
 % choose a rand set of numbers from 1-Pmax (max size of gene pool)
-% genome_compo = randi(genome_length,Pmax,1);
 
 
 
