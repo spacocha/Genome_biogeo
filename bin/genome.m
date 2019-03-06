@@ -8,9 +8,8 @@ n_time_slices = 100;
 t_max=1.0;
 diffusion_constant=50.0;
 oxygen_bubble_rate=0;
-oxygen_source=6.6e3;
-carbon_source=9.4e4;
-methane_source=2830.0;
+oxygen_source=6.6;
+carbon_source=9.4;
 nitrogen_source=0.0;
 nitroge_ratio=0.1;
 
@@ -132,8 +131,6 @@ ma_op_prod2_c = ma_op_rxns(:, 9)';
 ma_op_prod2_i = ma_op_rxns(:, 10);
 ma_op_prod3_c = ma_op_rxns(:, 11)';
 ma_op_prod3_i = ma_op_rxns(:, 12);
-%% are these supposed to be transformed?
-% the rc is transposed in the original
 ma_op_sp_growth_rate = ma_op_rxns(:, 13)';
 ma_op_half_sat_1 = ma_op_rxns(:, 14)';
 ma_op_half_sat_2 = ma_op_rxns(:, 15)';
@@ -206,18 +203,20 @@ for x = 1: Cmax
    end
 end
 
-% choose a rand set of numbers from 1-Pmax (max size of gene pool)
 n_total = n_x * n_species;
 concs_vector = reshape(concs0, [n_total, 1]);
 %unflatten
 concs = reshape(concs_vector, [n_x, n_species]);
-conc_fluxes = zeros(n_x, n_species);
-% apply the fixed source terms
-conc_fluxes(1, s('O')) = conc_fluxes(1, s('O')) + oxygen_source;
-conc_fluxes(1, s('C')) = conc_fluxes(1, s('C')) + carbon_source;
-conc_fluxes(1, s('N+')) = conc_fluxes(1, s('N+')) + nitrogen_source;
+t0=0;
+t_max=10;
+for t0 = 1:t_max
+    conc_fluxes = zeros(n_x, n_species);
+    % apply the fixed source terms
+    conc_fluxes(1, s('O')) = conc_fluxes(1, s('O')) + oxygen_source;
+    conc_fluxes(1, s('C')) = conc_fluxes(1, s('C')) + carbon_source;
+    conc_fluxes(1, s('N+')) = conc_fluxes(1, s('N+')) + nitrogen_source;
 
-for x = 1: n_x
+    for x = 1: n_x
 %        [ma_op_rates] = rates(concs(x, :));
 %end
 
@@ -238,62 +237,66 @@ for x = 1: n_x
     % for both reactants and products
     %Here null should be 1 so it doesn't affect Q calc
 %    concs_row(s('null'))=ones(n_x);
-    concs_row=concs(x, :);
-    %change the null to 1 so it doesn't affect Q calc.
-    concs_row(s('null'))=1;
-    ma_op_reac1 = concs_row(ma_op_reac1_i);
-    ma_op_reac2 = concs_row(ma_op_reac2_i);
-    ma_op_reac3 = concs_row(ma_op_reac3_i);
-    ma_op_prod1 = concs_row(ma_op_prod1_i);
-    ma_op_prod2 = concs_row(ma_op_prod2_i);
-    ma_op_prod3 = concs_row(ma_op_prod3_i);
+        concs_row=concs(x, :);
+        %change the null to 1 so it doesn't affect Q calc.
+        concs_row(s('null'))=1E6;
+        %make abs for now to avoid any negative conc.
+        ma_op_reac1 = abs(concs_row(ma_op_reac1_i));
+        ma_op_reac2 = abs(concs_row(ma_op_reac2_i));
+        ma_op_reac3 = abs(concs_row(ma_op_reac3_i));
+        ma_op_prod1 = abs(concs_row(ma_op_prod1_i));
+        ma_op_prod2 = abs(concs_row(ma_op_prod2_i));
+        ma_op_prod3 = abs(concs_row(ma_op_prod3_i));
 
-    % Calculate deltaG
-    % R is gas constant kJ K-1 mole -1
-    % room temp in Kelvin
-    %%Q%% can I multiply and add the vectors by these numbers?
-    g = 8.3144598 *273*log(rdivide(times(times(ma_op_prod3, ma_op_prod2), ma_op_prod1), times(times(ma_op_reac3, ma_op_reac2), ma_op_reac1)));
-    ma_op_deltaG = plus(ma_op_deltaG0, g);
+        %If any are negative, set to 1
+        % Calculate deltaG
+        % R is gas constant kJ K-1 mole -1
+        % room temp in Kelvin
+        %%Q%% can I multiply and add the vectors by these numbers?
+        g = 8.3144598 *298*log(rdivide(times(times(ma_op_prod3/1E6, ma_op_prod2/1E6), ma_op_prod1/1E6), times(times(ma_op_reac3/1E6, ma_op_reac2/1E6), ma_op_reac1/1E6)));
+        ma_op_deltaG = plus(ma_op_deltaG0, g);
     
-    %%Q%% can I multiple the vector (ma_op_deltaG) by a number (i.e. 2.08)?
-    Y = 2.08 - 0.0211*ma_op_deltaG;
+        %%Q%% can I multiple the vector (ma_op_deltaG) by a number (i.e. 2.08)?
+        Y = 2.08 - 0.0211*ma_op_deltaG;
 
-    % Ft calculated from each sample
-    %%Q%% Check if this is doing what I Think it is
-    Ft=rdivide(1,(exp(rdivide((ma_op_deltaG + 96.485*0.120),(8.3144598*273)))+1));
+        % Ft calculated from each sample
+        %%Q%% Check if this is doing what I Think it is
+        Ft=rdivide(1,(exp(rdivide((ma_op_deltaG + 96.485*0.120),(8.3144598*273)))+1));
 
-    % foreach genome, figure out which reaction is most favorable given the deltaG calc above and their genome content
-    % something like go through this and figure out for each how many
+        % foreach genome, figure out which reaction is most favorable given the deltaG calc above and their genome content
+        % something like go through this and figure out for each how many
 
-    % Then calculate gamma (i.e. the number of specific genones)
-    % Gamma = number of genomes cycling each reaction
-    % For now assume all genomes with capability contribute 
-    % Now use gamma to calculate the rate of the reaction
-    %Gamma is a vector of the sum of genes for each reaction
-    Gamma_total=sum(div_mat(:,:));
-    Gamma=Gamma_total(3:end);
-    ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
-    ma_op_rates_mat(x, :)=ma_op_rates;
+        % Then calculate gamma (i.e. the number of specific genones)
+        % Gamma = number of genomes cycling each reaction
+        % For now assume all genomes with capability contribute 
+        % Now use gamma to calculate the rate of the reaction
+        %Gamma is a vector of the sum of genes for each reaction
+        Gamma_total=sum(div_mat(:,:));
+        Gamma=Gamma_total(3:end);
+        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
+        ma_op_rates_mat(x, :)=ma_op_rates;
 
-    conc_fluxes(x, s('O')) = conc_fluxes(x, s('O')) + oxygen_bubble_rate;
+        conc_fluxes(x, s('O')) = conc_fluxes(x, s('O')) + oxygen_bubble_rate;
 
         %Is accumuation of nulls is a problem?
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, ma_op_reac1_c .* ma_op_rates, [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, ma_op_reac2_c .* ma_op_rates, [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, ma_op_reac3_c .* ma_op_rates, [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, ma_op_prod1_c .* ma_op_rates, [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, ma_op_prod2_c .* ma_op_rates, [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, ma_op_prod3_c .* ma_op_rates, [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
 
         %Diffusion
         if x > 1
-            conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* concs(x - 1, :) - D_minus .* concs(x, :);
+            conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* conc_fluxes(x - 1, :) - D_minus .* conc_fluxes(x, :);
         end
 
         if x < n_x
-            conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* concs(x, :) + D_minus .* concs(x + 1, :);
+            conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* conc_fluxes(x, :) + D_minus .* conc_fluxes(x + 1, :);
         end
 
+    end
+    concs=concs+conc_fluxes;
 end
 
 % -- flux --
