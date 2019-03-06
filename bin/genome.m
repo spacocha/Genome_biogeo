@@ -1,4 +1,4 @@
-%function [div_mat, ma_op_rxns, n_species, ma_op_rates] = test_genome(Cmax, Gmax, Pmax, carbon_precipitation, concs0)
+function [time_slices, y, concs_history] = genome(Cmax, Gmax, Pmax, carbon_precipitation, concs0)
 
 %% Simulation parameters
 % These are constants that affect the simulation but do not make
@@ -204,22 +204,6 @@ for x = 1: Cmax
 end
 
 n_total = n_x * n_species;
-concs_vector = reshape(concs0, [n_total, 1]);
-%unflatten
-concs = reshape(concs_vector, [n_x, n_species]);
-t0=0;
-t_max=10;
-for t0 = 1:t_max
-    conc_fluxes = zeros(n_x, n_species);
-    % apply the fixed source terms
-    conc_fluxes(1, s('O')) = conc_fluxes(1, s('O')) + oxygen_source;
-    conc_fluxes(1, s('C')) = conc_fluxes(1, s('C')) + carbon_source;
-    conc_fluxes(1, s('N+')) = conc_fluxes(1, s('N+')) + nitrogen_source;
-
-    for x = 1: n_x
-%        [ma_op_rates] = rates(concs(x, :));
-%end
-
 
 %% Define the flux functions
 
@@ -227,7 +211,7 @@ for t0 = 1:t_max
 % This function takes a row from the concentration matrix (i.e., a
 % horizontal slice from the lake) and computes the rates of the mass action
 % and primary oxidation reactions
-%function [ma_op_rates] = rates(concs_row)
+function [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs_row)
 
     % compute the mass action rates
     % for chemicals
@@ -237,18 +221,16 @@ for t0 = 1:t_max
     % for both reactants and products
     %Here null should be 1 so it doesn't affect Q calc
 %    concs_row(s('null'))=ones(n_x);
-        concs_row=concs(x, :);
-        %change the null to 1 so it doesn't affect Q calc.
+%        concs_row=concs(x, :);
+        %change the null to 1E6 or 1 mole so it doesn't affect Q calc.
         concs_row(s('null'))=1E6;
-        %make abs for now to avoid any negative conc.
-        ma_op_reac1 = abs(concs_row(ma_op_reac1_i));
-        ma_op_reac2 = abs(concs_row(ma_op_reac2_i));
-        ma_op_reac3 = abs(concs_row(ma_op_reac3_i));
-        ma_op_prod1 = abs(concs_row(ma_op_prod1_i));
-        ma_op_prod2 = abs(concs_row(ma_op_prod2_i));
-        ma_op_prod3 = abs(concs_row(ma_op_prod3_i));
+        ma_op_reac1 = concs_row(ma_op_reac1_i);
+        ma_op_reac2 = concs_row(ma_op_reac2_i);
+        ma_op_reac3 = concs_row(ma_op_reac3_i);
+        ma_op_prod1 = concs_row(ma_op_prod1_i);
+        ma_op_prod2 = concs_row(ma_op_prod2_i);
+        ma_op_prod3 = concs_row(ma_op_prod3_i);
 
-        %If any are negative, set to 1
         % Calculate deltaG
         % R is gas constant kJ K-1 mole -1
         % room temp in Kelvin
@@ -257,7 +239,7 @@ for t0 = 1:t_max
         ma_op_deltaG = plus(ma_op_deltaG0, g);
     
         %%Q%% can I multiple the vector (ma_op_deltaG) by a number (i.e. 2.08)?
-        Y = 2.08 - 0.0211*ma_op_deltaG;
+        Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1);
 
         % Ft calculated from each sample
         %%Q%% Check if this is doing what I Think it is
@@ -276,27 +258,6 @@ for t0 = 1:t_max
         ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
         ma_op_rates_mat(x, :)=ma_op_rates;
 
-        conc_fluxes(x, s('O')) = conc_fluxes(x, s('O')) + oxygen_bubble_rate;
-
-        %Is accumuation of nulls is a problem?
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-
-        %Diffusion
-        if x > 1
-            conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* conc_fluxes(x - 1, :) - D_minus .* conc_fluxes(x, :);
-        end
-
-        if x < n_x
-            conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* conc_fluxes(x, :) + D_minus .* conc_fluxes(x + 1, :);
-        end
-
-    end
-    concs=concs+conc_fluxes;
 end
 
 % -- flux --
@@ -306,37 +267,34 @@ end
 % precipitations and outputs the fluxes for each metabolite at each depth.
 
 % twiddle because this is time-independent
-%function [conc_fluxes] = flux(~, concs_vector)
-    % Extract both concs and genomes from concs_vector
-%    concs = reshape(concs_vector, [n_x, n_species]);
-    %something like this, where concs in line above replaced by concs_extract
-    % concs=concs_extract(1,n_chemicals);
-    % genomes=concs_extraction(n_chemicals+1,end);
+function [conc_fluxes] = flux(~, concs_vector)
+    % Extractconcs from concs_vector
+    concs = reshape(concs_vector, [n_x, n_species]);
 
-%    conc_fluxes = zeros(n_x, n_species);
-    % genome_fluxes = zeros(n_x, n_genomes)
+    conc_fluxes = zeros(n_x, n_species);
 
     % apply the oxygen bubbles
-%    conc_fluxes(:, s('O')) = conc_fluxes(:, s('O')) + oxygen_bubble_rate;
+    conc_fluxes(:, s('O')) = conc_fluxes(:, s('O')) + oxygen_bubble_rate;
 
     % apply the fixed source terms
-%    conc_fluxes(1, s('O')) = conc_fluxes(1, s('O')) + oxygen_source;
-%    conc_fluxes(1, s('C')) = conc_fluxes(1, s('C')) + carbon_source;
-%    conc_fluxes(1, s('N+')) = conc_fluxes(1, s('N+')) + nitrogen_source;
+    conc_fluxes(1, s('O')) = conc_fluxes(1, s('O')) + oxygen_source;
+    conc_fluxes(1, s('C')) = conc_fluxes(1, s('C')) + carbon_source;
+    conc_fluxes(1, s('N+')) = conc_fluxes(1, s('N+')) + nitrogen_source;
     %conc_fluxes(end, s('CH4')) = conc_fluxes(end, s('CH4')) + methane_source;
     
-%    for x = 1: n_x
+    for x = 1: n_x
 %        %set 'null' to 1 for Q calculation, so it doesn't influence deltaG
-%        concs(x, s('null'))=1;
-%        [ma_op_rates] = rates(concs(x, :));
+        concs(x, s('null'))=1;
+        [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs(x, :));
 
         % apply the mass action rates
-%        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, ma_op_reac1_c .* ma_op_rates, [n_species, 1])';
-%        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, ma_op_reac2_c .* ma_op_rates, [n_species, 1])';
-%        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, ma_op_reac3_c .* ma_op_rates, [n_species, 1])';
-%        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, ma_op_prod1_c .* ma_op_rates, [n_species, 1])';
-%        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, ma_op_prod2_c .* ma_op_rates, [n_species, 1])';
-%        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, ma_op_prod3_c .* ma_op_rates, [n_species, 1])';
+        %One concernt I have is that previously I was using the reac1-prod3 in the sub, but now it's generic
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         % apply the primary oxidation rates
         %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(po_tea_i, tea_rates, [n_species, 1])';
         %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(po_tea_prod_i, tea_rates, [n_species, 1])';
@@ -345,40 +303,40 @@ end
         %conc_fluxes(x, s('N-')) = conc_fluxes(x, s('N-')) + nitrogen_ratio * po_carbon_rate;
         
         % diffusion      
-%        if x > 1
-%            conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* concs(x - 1, :) - D_minus .* concs(x, :);
-%        end
+        if x > 1
+            conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* concs(x - 1, :) - D_minus .* concs(x, :);
+        end
 
-%        if x < n_x
-%            conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* concs(x, :) + D_minus .* concs(x + 1, :);
-%        end
+        if x < n_x
+            conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* concs(x, :) + D_minus .* concs(x + 1, :);
+        end
 
-%    end % for x
+    end % for x
     
-%    conc_fluxes(:, s('null')) = 0.0;
-%    conc_fluxes = reshape(conc_fluxes, [n_total, 1]);
-%end
+    conc_fluxes(:, s('null')) = 0.0;
+    conc_fluxes = reshape(conc_fluxes, [n_total, 1]);
+end
 
 
 %% ODE solver
 % This section feeds the flux function to the ODE solver.
 
 % all concentrations are constrained to be nonnegative
-%options = odeset('NonNegative', 1: n_total);
+options = odeset('NonNegative', 1: n_total);
 
 % initially flatten the concentration matrix
-%concs0_vector = reshape(concs0, [n_total, 1]);
+concs0_vector = reshape(concs0, [n_total, 1]);
 
 % run the ODE solver (ode15s)
 % t is the times at which the ODE solver gives output. They are not evenly
 % spaced! y is a matrix whose rows are the flattened concentration matrices
 % at each time step
-%[time_slices, y] = ode15s(@flux, linspace(0.0, t_max, n_time_slices), concs0_vector, options);
+[time_slices, y] = ode15s(@flux, linspace(0.0, t_max, n_time_slices), concs0_vector, options);
 
 % unfold the result y, putting it into a 3D space whose dimensions
 % correspond to time, depth, and metabolite
-%[n_time_slices, ~] = size(y);
-%concs_history = reshape(y, n_time_slices, n_x, n_species);
+[n_time_slices, ~] = size(y);
+concs_history = reshape(y, n_time_slices, n_x, n_species);
 
 %% get all the reaction rates for all timepoints
 % ma_op then teas
@@ -389,4 +347,4 @@ end
 %    end
 %end
 
-%end
+end
