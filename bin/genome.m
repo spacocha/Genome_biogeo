@@ -211,8 +211,10 @@ n_total = n_x * n_species;
 % This function takes a row from the concentration matrix (i.e., a
 % horizontal slice from the lake) and computes the rates of the mass action
 % and primary oxidation reactions
-function [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs_row)
-
+function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
+    %to change this to dynamic community, we need to pass comunity too
+    %Community will change like concs will change
+    %it will be just as dynamic 
     % compute the mass action rates
     % for chemicals
     %assume unchaning community for now
@@ -234,15 +236,19 @@ function [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs_row)
         % Calculate deltaG
         % R is gas constant kJ K-1 mole -1
         % room temp in Kelvin
-        %%Q%% can I multiply and add the vectors by these numbers?
+        % Equation SI5 in Reed et al
         g = 8.3144598 *298*log(rdivide(times(times(ma_op_prod3/1E6, ma_op_prod2/1E6), ma_op_prod1/1E6), times(times(ma_op_reac3/1E6, ma_op_reac2/1E6), ma_op_reac1/1E6)));
         ma_op_deltaG = plus(ma_op_deltaG0, g);
     
-        %%Q%% can I multiple the vector (ma_op_deltaG) by a number (i.e. 2.08)?
+        %calculate the biomass yield for each reaction related to free energy
+        %This is not per mole, but per uM
+	%Check if that is correct
+	%Equation SI4 of Reed et al 2016
         Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1);
 
         % Ft calculated from each sample
-        %%Q%% Check if this is doing what I Think it is
+	%Thermodynamic potential factor (unitless)
+	%Equation S1 of Reed et al
         Ft=rdivide(1,(exp(rdivide((ma_op_deltaG + 96.485*0.120),(8.3144598*273)))+1));
 
         % foreach genome, figure out which reaction is most favorable given the deltaG calc above and their genome content
@@ -253,8 +259,10 @@ function [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs_row)
         % For now assume all genomes with capability contribute 
         % Now use gamma to calculate the rate of the reaction
         %Gamma is a vector of the sum of genes for each reaction
-        Gamma_total=sum(div_mat(:,:));
-        Gamma=Gamma_total(3:end);
+	%Based on equation 1 of Reed et al
+	%Gamma is calculated dynamically
+        %Gamma_total=sum(div_mat(:,:));
+        %Gamma=Gamma_total(3:end);
         ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
         ma_op_rates_mat(x, :)=ma_op_rates;
 
@@ -285,7 +293,9 @@ function [conc_fluxes] = flux(~, concs_vector)
     for x = 1: n_x
 %        %set 'null' to 1 for Q calculation, so it doesn't influence deltaG
         concs(x, s('null'))=1;
-        [ma_op_rates, ma_op_deltaG, Y, Gamma] = rates(concs(x, :));
+	Gamma_total=sum(div_mat(:,:));
+        Gamma=Gamma_total(3:end);
+        [ma_op_rates, ma_op_deltaG, Y] = rates(concs(x, :), Gamma);
 
         % apply the mass action rates
         %One concernt I have is that previously I was using the reac1-prod3 in the sub, but now it's generic
