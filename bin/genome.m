@@ -5,7 +5,7 @@ function [time_slices, y, concs_history] = genome(Cmax, Gmax, Pmax, carbon_preci
 % assertions about the actual system.
 n_x = 17;   % number of compartments
 n_time_slices = 100;
-t_max=1.0;
+t_max=1000.0;
 diffusion_constant=50.0;
 oxygen_bubble_rate=0;
 oxygen_source=6.6;
