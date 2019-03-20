@@ -11,7 +11,10 @@ oxygen_bubble_rate=0;
 oxygen_source=6.6;
 carbon_source=9.4;
 nitrogen_source=0.0;
-nitroge_ratio=0.1;
+nitrogen_ratio=0.1;
+lambda=0.1;
+D_cell_plus=0.1;
+D_cell_minus=0.1;
 
 %% Species map
 % import the species list using the separate function file:
@@ -145,8 +148,7 @@ ma_op_deltaG0 = ma_op_rxns(:, 16)';
 % matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor]
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
-
-div_mat=zeros(Cmax, 11);
+div_mat=zeros(Cmax, 12);
 
 for x = 1: Cmax
    %set the copies to 1;
@@ -203,8 +205,10 @@ for x = 1: Cmax
    end
 end
 
-n_total = n_x * n_species;
-
+n_total_chem = n_x * n_species;
+%for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
+n_total_div = n_x * Cmax;
+div0=ones(n_x, Cmax);
 %% Define the flux functions
 
 % -- rates --
@@ -255,14 +259,11 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         % something like go through this and figure out for each how many
 
         % Then calculate gamma (i.e. the number of specific genones)
-        % Gamma = number of genomes cycling each reaction
-        % For now assume all genomes with capability contribute 
+        % Gamma = number of individuals cycling each reaction
+        % For now assume all individuals with capability contribute 
         % Now use gamma to calculate the rate of the reaction
         %Gamma is a vector of the sum of genes for each reaction
 	%Based on equation 1 of Reed et al
-	%Gamma is calculated dynamically
-        %Gamma_total=sum(div_mat(:,:));
-        %Gamma=Gamma_total(3:end);
         ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
         ma_op_rates_mat(x, :)=ma_op_rates;
 
@@ -275,12 +276,17 @@ end
 % precipitations and outputs the fluxes for each metabolite at each depth.
 
 % twiddle because this is time-independent
-function [conc_fluxes] = flux(~, concs_vector)
+function [merged_fluxes] = flux(~, merged_vector)
     % Extractconcs from concs_vector
+    %Divide vector into concs_vector and div_vector
+    %
+    concs_vector = merged_vector(1:n_total_chem);
+    div_vector = merged_vector(n_total_chem+1:end);
     concs = reshape(concs_vector, [n_x, n_species]);
+    div = reshape(div_vector, [n_x, Cmax]);
 
     conc_fluxes = zeros(n_x, n_species);
-
+    div_fluxes = zeros(n_x, Cmax);
     % apply the oxygen bubbles
     conc_fluxes(:, s('O')) = conc_fluxes(:, s('O')) + oxygen_bubble_rate;
 
@@ -293,18 +299,35 @@ function [conc_fluxes] = flux(~, concs_vector)
     for x = 1: n_x
 %        %set 'null' to 1 for Q calculation, so it doesn't influence deltaG
         concs(x, s('null'))=1;
-	Gamma_total=sum(div_mat(:,:));
-        Gamma=Gamma_total(3:end);
+	%Each species has unchaning a vecotr of genes
+	%If the community diversity is dynamic too, it needs to be treated differently
+        Gamma=sum(div(x, :)'.*div_mat(:,3:end));
         [ma_op_rates, ma_op_deltaG, Y] = rates(concs(x, :), Gamma);
 
         % apply the mass action rates
         %One concernt I have is that previously I was using the reac1-prod3 in the sub, but now it's generic
+	%Based on Equation 3 of Reed et al ?
+	%removing reactants
+	%adding products
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+
+	%aaply the growth terms
+	%This is based on equation 2 of Reed et al?
+	%Right now, metabolic plasticity isn't included 
+	%This should change the gene rate based on genome structure
+	%For now, for any process that is available in the genome
+	%These genes are arrayed in the same way as the genome
+	%So for anything that has a gene, it should change based on that rate
+	%cycle through all of the organisms and increase their numbers according to gene content and rates
+	for gx = 1 : Cmax
+		div_fluxes(x, gx) = div_fluxes(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
+	end
+
         % apply the primary oxidation rates
         %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(po_tea_i, tea_rates, [n_species, 1])';
         %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(po_tea_prod_i, tea_rates, [n_species, 1])';
@@ -315,16 +338,25 @@ function [conc_fluxes] = flux(~, concs_vector)
         % diffusion      
         if x > 1
             conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* concs(x - 1, :) - D_minus .* concs(x, :);
+            for gx = 1 : Cmax
+               div_fluxes(x,gx) = div_fluxes(x, gx) + D_cell_plus .* div(x-1,gx) - D_cell_minus .* div(x, gx);
+            end
         end
 
         if x < n_x
             conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* concs(x, :) + D_minus .* concs(x + 1, :);
+	    for gx = 1: Cmax
+                div_fluxes(x,gx)=div_fluxes(x, gx) - D_cell_plus .* div(x, gx) + D_cell_minus .* div(x+1, gx);
+	    end
         end
 
     end % for x
     
     conc_fluxes(:, s('null')) = 0.0;
-    conc_fluxes = reshape(conc_fluxes, [n_total, 1]);
+    conc_fluxes = reshape(conc_fluxes, [n_total_chem, 1]);
+    div_fluxes = reshape(div_fluxes, [n_total_div, 1]);
+    merged_fluxes_2 = [conc_fluxes' div_fluxes'];
+    merged_fluxes = merged_fluxes_2';
 end
 
 
@@ -332,16 +364,21 @@ end
 % This section feeds the flux function to the ODE solver.
 
 % all concentrations are constrained to be nonnegative
+n_total=n_total_chem+n_total_div;
 options = odeset('NonNegative', 1: n_total);
 
 % initially flatten the concentration matrix
-concs0_vector = reshape(concs0, [n_total, 1]);
-
+concs0_vector = reshape(concs0, [n_total_chem, 1]);
+%check to see if Cmax is the right thing here
+div0_vector = reshape(div0, [n_total_div, 1]);
+init_vector = [concs0_vector' div0_vector'];
+init_vector_2=init_vector';
 % run the ODE solver (ode15s)
 % t is the times at which the ODE solver gives output. They are not evenly
 % spaced! y is a matrix whose rows are the flattened concentration matrices
 % at each time step
-[time_slices, y] = ode15s(@flux, linspace(0.0, t_max, n_time_slices), concs0_vector, options);
+% add div_mat to concs0_vector
+[time_slices, y] = ode15s(@flux, linspace(0.0, t_max, n_time_slices), init_vector_2, options);
 
 % unfold the result y, putting it into a 3D space whose dimensions
 % correspond to time, depth, and metabolite
