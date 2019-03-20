@@ -1,4 +1,4 @@
-function [time_slices, y, concs_history] = genome(Cmax, Gmax, Pmax, carbon_precipitation, concs0)
+function [time_slices, y] = genome(Cmax, Gmax, Pmax, carbon_precipitation, concs0)
 
 %% Simulation parameters
 % These are constants that affect the simulation but do not make
@@ -149,61 +149,73 @@ ma_op_deltaG0 = ma_op_rxns(:, 16)';
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
 div_mat=zeros(Cmax, 12);
+%Set up temp structure for now with each function represented onces
+div_mat(1,3)=1;
+div_mat(2,4)=1;
+div_mat(3,5)=1;
+div_mat(4,6)=1;
+div_mat(5,7)=1;
+div_mat(6,8)=1;
+div_mat(7,9)=1;
+div_mat(8,10)=1;
+div_mat(9,11)=1;
+div_mat(10,12)=1;
 
-for x = 1: Cmax
-   %set the copies to 1;
-   div_mat(x, 1)=1;
-   genome_length = randi(Gmax);
-   div_mat(x, 2)=genome_length;
-   genome_compo = randi(Pmax,genome_length,1);
-   % set up the rows of div_mat according to genome composition
-   %glut1 is gene 13
-   if ismember(13,genome_compo)
-      %cox is gene 1
-      if ismember(1,genome_compo)
-         div_mat(x,3)=1;
-      end
-      %nar is gene 2
-      if ismember(2,genome_compo)
-         div_mat(x,4)=1;
-      end
-      %nir is gene 3
-      if ismember(3, genome_compo)
-         div_mat(x,5)=1;
-      end
-      %nrf is gene 4
-      if ismember(4, genome_compo)
-         div_mat(x, 6)=1;
-      end
-      %dsr is gene 5
-      if ismember(5, genome_compo)
-         div_mat(x, 7)=1;
-      end
-   end
-   %rbcl is gene 6
-   if ismember(6, genome_compo)
-      %nap is gene 7 
-      if ismember(7, genome_compo)
-         div_mat(x, 8)=1;
-      end
-      %sox is gene 8
-      if ismember(8, genome_compo)
-         div_mat(x, 9)=1;
-      end
-      %amoA is gene 9
-      if ismember(9, genome_compo)
-         div_mat(x, 10)=1;
-      end
-      %hzo is gene 10
-      if ismember(10, genome_compo)
-         div_mat(x,11)=1;
-      end
-      %nor is gene 11
-      if ismember(11, genome_compo)
-         div_mat(x, 12)=1;
-      end
-   end
-end
+%This will be for random structure
+%for x = 1: Cmax
+%   %set the copies to 1;
+%   div_mat(x, 1)=1;
+%   genome_length = randi(Gmax);
+%   div_mat(x, 2)=genome_length;
+%   genome_compo = randi(Pmax,genome_length,1);
+%   % set up the rows of div_mat according to genome composition
+%   %glut1 is gene 13
+%   if ismember(13,genome_compo)
+%      %cox is gene 1
+%      if ismember(1,genome_compo)
+%         div_mat(x,3)=1;
+%      end
+%      %nar is gene 2
+%      if ismember(2,genome_compo)
+%         div_mat(x,4)=1;
+%      end
+%      %nir is gene 3
+%      if ismember(3, genome_compo)
+%         div_mat(x,5)=1;
+%      end
+%      %nrf is gene 4
+%     if ismember(4, genome_compo)
+%         div_mat(x, 6)=1;
+%      end
+%      %dsr is gene 5
+%      if ismember(5, genome_compo)
+%         div_mat(x, 7)=1;
+%      end
+%   end
+%   %rbcl is gene 6
+%   if ismember(6, genome_compo)
+%      %nap is gene 7 
+%      if ismember(7, genome_compo)
+%         div_mat(x, 8)=1;
+%      end
+%      %sox is gene 8
+%      if ismember(8, genome_compo)
+%         div_mat(x, 9)=1;
+%      end
+%      %amoA is gene 9
+%      if ismember(9, genome_compo)
+%         div_mat(x, 10)=1;
+%      end
+%      %hzo is gene 10
+%      if ismember(10, genome_compo)
+%         div_mat(x,11)=1;
+%      end
+%      %nor is gene 11
+%      if ismember(11, genome_compo)
+%         div_mat(x, 12)=1;
+%      end
+%   end
+%end
 
 n_total_chem = n_x * n_species;
 %for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
@@ -265,7 +277,7 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         %Gamma is a vector of the sum of genes for each reaction
 	%Based on equation 1 of Reed et al
         ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
-        ma_op_rates_mat(x, :)=ma_op_rates;
+%        ma_op_rates_mat(x, :)=ma_op_rates;
 
 end
 
@@ -383,7 +395,7 @@ init_vector_2=init_vector';
 % unfold the result y, putting it into a 3D space whose dimensions
 % correspond to time, depth, and metabolite
 [n_time_slices, ~] = size(y);
-concs_history = reshape(y, n_time_slices, n_x, n_species);
+%concs_history = reshape(y, n_time_slices, n_x, n_species);
 
 %% get all the reaction rates for all timepoints
 % ma_op then teas
