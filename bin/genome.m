@@ -5,14 +5,17 @@ function [time_slices, y] = genome(Cmax, Gmax, Pmax, carbon_precipitation, concs
 % assertions about the actual system.
 n_x = 17;   % number of compartments
 n_time_slices = 100;
-t_max=1000.0;
-diffusion_constant=50.0;
+t_max=100.0;
+diffusion_constant=50;
 oxygen_bubble_rate=0;
 oxygen_source=6.6;
 carbon_source=9.4;
 nitrogen_source=0.0;
+%Currently there isn't any release of ammonia upon degredation
+%Maybe add this somehow with this from the amount of C removed 
+%or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
-lambda=0.1;
+lambda=0.001; %from Reed et al table S2
 D_cell_plus=0.1;
 D_cell_minus=0.1;
 
@@ -92,7 +95,7 @@ ma_op_rxns = [
     0.167   s('C')   1   s('O')   1   s('null')   1   s('CO2')   1   s('H2O')   1   s('null')   cox_sp_growth_rate   cox_half_sat_C   cox_half_sat_O   cox_deltaG0
     0.167   s('C')   2   s('N+')   1   s('null')   1   s('CO2')   1   s('N')   1   s('H2O')   nar_sp_growth_rate   nar_half_sat_C   nar_half_sat_N   nar_deltaG0
     0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_deltaG0
-    0.167   s('C')   0.67   s('N-')   1.333   s('H')   1   s('CO2')   0.67   s('N+')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_deltaG0
+    0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_deltaG0
     0.167   s('C')   0.5   s('S+')   1   s('null')   1   s('HCO3')   0.5   s('S-')   1   s('null')   dsr_sp_growth_rate   dsr_half_sat_C   dsr_half_sat_S   dsr_deltaG0
     0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_deltaG0
     1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_deltaG0
@@ -240,8 +243,21 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
     %Here null should be 1 so it doesn't affect Q calc
 %    concs_row(s('null'))=ones(n_x);
 %        concs_row=concs(x, :);
-        %change the null to 1E6 or 1 mole so it doesn't affect Q calc.
+        %change the null and H2O to 1M so it doesn't affect Q calc.
+	%1E6/1E6=1 see below it is divided by 1E6 to make into moles
         concs_row(s('null'))=1E6;
+	concs_row(s('H2O'))=1E6;	
+	%Change the H so it is buffered at pH 8
+	concs_row(s('H'))=0.01;
+	%N2 and CO2, HCO3 should remain steady
+	%I'm not sure what to keep it at for now, but these should remain steady
+	%Approximations for now, but get refs and confirm in future
+	%From sat of 29.14 mg/L N2
+	concs_row(s('N2'))=1E3;
+	%From 200 mg/L alk and 1.2192 mg/L of HCO3
+	concs_row(s('CO2'))=4E3;
+	concs_row(s('HCO3'))=4E3;
+
         ma_op_reac1 = concs_row(ma_op_reac1_i);
         ma_op_reac2 = concs_row(ma_op_reac2_i);
         ma_op_reac3 = concs_row(ma_op_reac3_i);
