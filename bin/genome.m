@@ -1,11 +1,15 @@
-function [time_slices, y] = genome(Cmax, Gmax, Pmax, carbon_precipitation, concs0)
+function [time_slices, y] = genome(t_max, concs0)
 
 %% Simulation parameters
 % These are constants that affect the simulation but do not make
 % assertions about the actual system.
 n_x = 17;   % number of compartments
 n_time_slices = 100;
-t_max=100.0;
+%t_max=100.0;
+Cmax=11;
+Pmax=500;
+Gmax=250;
+carbon_precipitation = 0.1;
 diffusion_constant=50;
 oxygen_bubble_rate=0;
 oxygen_source=6.6;
@@ -67,6 +71,10 @@ sox_half_sat_O=0.121;
 nap_sp_growth_rate=0.864;
 nap_half_sat_N=0.121;
 nap_half_sat_S=0.121;
+%Test with sulfur disproport
+sdp_sp_growth_rate=0.864;
+sdp_half_sat_H=0.121;
+sdp_half_sat_S=0.121;
 %The deltaG0 are
 %in kJ/mol
 %G from 298K
@@ -81,7 +89,7 @@ sox_deltaG0=-822.0793; %subcrt(c(18, 65, 17, 1, 3), c(-1, -3/2, 1, 1, 2), T=seq(
 amo_deltaG0=-214.7716; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
 hzo_deltaG0=-344.5038; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
 nor_deltaG0=-173.9297; %subcrt(c(65, 17, 16), c(-1, -2, 2), T=seq(298, 299, 300))
-
+sdp_deltaG0=120.51; %From Aquatic Geomicrobiology vol 48 Canfield
 % mass action, one product reactions (ma_op_rxns)
 ma_op_rxns = [
     % all reactions
@@ -101,7 +109,8 @@ ma_op_rxns = [
     1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_deltaG0
     1   s('N-')   1.5   s('O')   1   s('null')   1   s('N')   1   s('H2O')   2   s('H')   amo_sp_growth_rate   amo_half_sat_N   amo_half_sat_O   amo_deltaG0
     1   s('N-')   1   s('N')   1   s('null')   1   s('N2')   2   s('H2O')   1   s('null')   hzo_sp_growth_rate   hzo_half_sat_Nm   hzo_half_sat_N   hzo_deltaG0
-    2    s('N')   1   s('O')   1   s('null')   2   s('N+')   1   s('null')   1   s('null')   nor_sp_growth_rate   nor_half_sat_N   nor_half_sat_O   nor_deltaG0
+    2   s('N')   1   s('O')   1   s('null')   2   s('N+')   1   s('null')   1   s('null')   nor_sp_growth_rate   nor_half_sat_N   nor_half_sat_O   nor_deltaG0
+    4   s('H2O')   4   s('S')   1   s('null')   3   s('S-')   1   s('S+')   2   s('H')   sdp_sp_growth_rate   sdp_half_sat_H   sdp_half_sat_S   sdp_deltaG0   
 ];
 [n_ma_op_rxns, ~] = size(ma_op_rxns);
 
@@ -151,7 +160,7 @@ ma_op_deltaG0 = ma_op_rxns(:, 16)';
 % matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor]
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
-div_mat=zeros(Cmax, 12);
+div_mat=zeros(11, 13);
 %Set up temp structure for now with each function represented onces
 div_mat(1,3)=1;
 div_mat(2,4)=1;
@@ -163,7 +172,7 @@ div_mat(7,9)=1;
 div_mat(8,10)=1;
 div_mat(9,11)=1;
 div_mat(10,12)=1;
-
+div_mat(11,13)=1;
 %This will be for random structure
 %for x = 1: Cmax
 %   %set the copies to 1;
@@ -269,8 +278,11 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         % R is gas constant kJ K-1 mole -1
         % room temp in Kelvin
         % Equation SI5 in Reed et al
-        g = 8.3144598 *298*log(rdivide(times(times(ma_op_prod3/1E6, ma_op_prod2/1E6), ma_op_prod1/1E6), times(times(ma_op_reac3/1E6, ma_op_reac2/1E6), ma_op_reac1/1E6)));
-        ma_op_deltaG = plus(ma_op_deltaG0, g);
+	numerator=times(times(power(ma_op_prod3/1E6,ma_op_prod3_c), power(ma_op_prod2/1E6,ma_op_prod2_c)), power(ma_op_prod1/1E6,ma_op_prod1_c));
+	denominator=times(times(power(ma_op_reac3/1E6,ma_op_reac3_c), power(ma_op_reac2/1E6,ma_op_reac2_c)), power(ma_op_reac1/1E6, ma_op_reac1_c));
+	Q=rdivide(numerator,denominator);
+	g = 0.0083144598 *298*log(Q);
+	ma_op_deltaG = plus(ma_op_deltaG0, g);
     
         %calculate the biomass yield for each reaction related to free energy
         %This is not per mole, but per uM
@@ -336,12 +348,14 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%removing reactants
 	%adding products
 	%MISSING the stoichiometry for these reactions
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
-        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
+	%React 1 is the electron donor, so it doesn't need to be adjusted by stochiometry
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
+	%Others need to be adjusted by the relationship between the stoichiometry of 1 and itself
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, times(rdivide(ma_op_reac2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, times(rdivide(ma_op_reac3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, times(rdivide(ma_op_prod1_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, times(rdivide(ma_op_prod2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, times(rdivide(ma_op_prod3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
 
 	%aaply the growth terms
 	%This is based on equation 2 of Reed et al?
