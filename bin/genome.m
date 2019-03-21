@@ -256,8 +256,8 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	%1E6/1E6=1 see below it is divided by 1E6 to make into moles
         concs_row(s('null'))=1E6;
 	concs_row(s('H2O'))=1E6;	
-	%Change the H so it is buffered at pH 8
-	concs_row(s('H'))=0.01;
+	%Change the H so it is buffered at pH 7.5
+	concs_row(s('H'))=0.0316;
 	%N2 and CO2, HCO3 should remain steady
 	%I'm not sure what to keep it at for now, but these should remain steady
 	%Approximations for now, but get refs and confirm in future
