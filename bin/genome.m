@@ -326,17 +326,16 @@ function [merged_fluxes] = flux(~, merged_vector)
     
     for x = 1: n_x
 %        %set 'null' to 1 for Q calculation, so it doesn't influence deltaG
-        concs(x, s('null'))=1;
 	%Each species has unchaning a vecotr of genes
 	%If the community diversity is dynamic too, it needs to be treated differently
         Gamma=sum(div(x, :)'.*div_mat(:,3:end));
         [ma_op_rates, ma_op_deltaG, Y] = rates(concs(x, :), Gamma);
 
         % apply the mass action rates
-        %One concernt I have is that previously I was using the reac1-prod3 in the sub, but now it's generic
 	%Based on Equation 3 of Reed et al ?
 	%removing reactants
 	%adding products
+	%MISSING the stoichiometry for these reactions
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
         conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, rdivide(ma_op_rates,times(ma_op_deltaG, times(Gamma,Y))), [n_species, 1])';
