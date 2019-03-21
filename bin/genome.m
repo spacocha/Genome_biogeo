@@ -20,8 +20,8 @@ nitrogen_source=0.0;
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
 lambda=0.001; %from Reed et al table S2
-D_cell_plus=0.1;
-D_cell_minus=0.1;
+D_cell_plus=0.001;
+D_cell_minus=0.001;
 
 %% Species map
 % import the species list using the separate function file:
@@ -132,6 +132,10 @@ end
 D = diffusion_constant;
 D_plus = (1.0 + precipitation_constants) * D;
 D_minus = (1.0 - precipitation_constants) * D;
+
+%Not sure what's going on here, but make this into a small fraction
+D_plus = D_plus/10000;
+D_minus = D_minus/10000;
 
 % grab the unchanging columns from the reaction matrix
 ma_op_reac1_c = ma_op_rxns(:, 1)';
@@ -288,13 +292,12 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         %This is not per mole, but per uM
 	%Check if that is correct
 	%Equation SI4 of Reed et al 2016
-        Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1);
+        Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1/1E6);
 
         % Ft calculated from each sample
 	%Thermodynamic potential factor (unitless)
 	%Equation S1 of Reed et al
-        Ft=rdivide(1,(exp(rdivide((ma_op_deltaG + 96.485*0.120),(8.3144598*273)))+1));
-
+	Ft=rdivide(1,exp(rdivide((ma_op_deltaG + 96.485*0.120),0.083144598*298))+1);
         % foreach genome, figure out which reaction is most favorable given the deltaG calc above and their genome content
         % something like go through this and figure out for each how many
 
