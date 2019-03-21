@@ -133,9 +133,9 @@ D = diffusion_constant;
 D_plus = (1.0 + precipitation_constants) * D;
 D_minus = (1.0 - precipitation_constants) * D;
 
-%Not sure what's going on here, but make this into a small fraction
-D_plus = D_plus/10000;
-D_minus = D_minus/10000;
+%Change to per second, rather than per year
+D_plus = D_plus/3.1536E7;
+D_minus = D_minus/3.1536E7;
 
 % grab the unchanging columns from the reaction matrix
 ma_op_reac1_c = ma_op_rxns(:, 1)';
