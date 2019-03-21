@@ -368,9 +368,10 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%These genes are arrayed in the same way as the genome
 	%So for anything that has a gene, it should change based on that rate
 	%cycle through all of the organisms and increase their numbers according to gene content and rates
-	for gx = 1 : Cmax
-		div_fluxes(x, gx) = div_fluxes(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
-	end
+	%Remove div flux
+	%for gx = 1 : Cmax
+	%	div_fluxes(x, gx) = div_fluxes(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
+	%end
 
         % apply the primary oxidation rates
         %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(po_tea_i, tea_rates, [n_species, 1])';
@@ -382,16 +383,18 @@ function [merged_fluxes] = flux(~, merged_vector)
         % diffusion      
         if x > 1
             conc_fluxes(x, :) = conc_fluxes(x, :) + D_plus .* concs(x - 1, :) - D_minus .* concs(x, :);
-            for gx = 1 : Cmax
-               div_fluxes(x,gx) = div_fluxes(x, gx) + D_cell_plus .* div(x-1,gx) - D_cell_minus .* div(x, gx);
-            end
+	    %Remove div_flux
+            %for gx = 1 : Cmax
+            %   div_fluxes(x,gx) = div_fluxes(x, gx) + D_cell_plus .* div(x-1,gx) - D_cell_minus .* div(x, gx);
+            %end
         end
 
         if x < n_x
             conc_fluxes(x, :) = conc_fluxes(x, :) - D_plus .* concs(x, :) + D_minus .* concs(x + 1, :);
-	    for gx = 1: Cmax
-                div_fluxes(x,gx)=div_fluxes(x, gx) - D_cell_plus .* div(x, gx) + D_cell_minus .* div(x+1, gx);
-	    end
+	    %Remove div flux
+	    %for gx = 1: Cmax
+            %    div_fluxes(x,gx)=div_fluxes(x, gx) - D_cell_plus .* div(x, gx) + D_cell_minus .* div(x+1, gx);
+	    %end
         end
 
     end % for x
