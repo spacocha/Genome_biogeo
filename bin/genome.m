@@ -10,7 +10,7 @@ Cmax=11;
 Pmax=500;
 Gmax=250;
 carbon_precipitation = 0.1;
-diffusion_constant=50;
+diffusion_constant=1;
 oxygen_bubble_rate=0;
 oxygen_source=6.6;
 carbon_source=9.4;
@@ -134,8 +134,8 @@ D_plus = (1.0 + precipitation_constants) * D;
 D_minus = (1.0 - precipitation_constants) * D;
 
 %Change to per second, rather than per year
-D_plus = D_plus/3.1536E7;
-D_minus = D_minus/3.1536E7;
+%D_plus = D_plus/3.1536E7;
+%D_minus = D_minus/3.1536E7;
 
 % grab the unchanging columns from the reaction matrix
 ma_op_reac1_c = ma_op_rxns(:, 1)';
