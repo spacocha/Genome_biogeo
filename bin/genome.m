@@ -59,20 +59,20 @@ dsr_half_sat_S=3;
 amo_sp_growth_rate=0.432;
 amo_half_sat_N=107;
 amo_half_sat_O=18.75;
-hzo_sp_growth_rate=0.864;
+hzo_sp_growth_rate=0.4;
 hzo_half_sat_Nm=5;
 hzo_half_sat_N=5;
 nor_sp_growth_rate=0.432;
 nor_half_sat_N=64.3;
 nor_half_sat_O=16.9;
-sox_sp_growth_rate=0.864;
+sox_sp_growth_rate=0.4;
 sox_half_sat_S=0.121;
 sox_half_sat_O=0.121;
-nap_sp_growth_rate=0.864;
+nap_sp_growth_rate=0.4;
 nap_half_sat_N=0.121;
 nap_half_sat_S=0.121;
 %Test with sulfur disproport
-sdp_sp_growth_rate=0.864;
+sdp_sp_growth_rate=0.4;
 sdp_half_sat_H=0.121;
 sdp_half_sat_S=0.121;
 %The deltaG0 are
@@ -397,7 +397,14 @@ function [merged_fluxes] = flux(~, merged_vector)
 
     end % for x
     
-    conc_fluxes(:, s('null')) = 0.0;
+    %Fix buffered values so they don't change
+    conc_fluxes(:, s('null'))=0.0;
+    conc_fluxes(:, s('H2O'))=0.0;
+    conc_fluxes(:, s('H'))=0.0;
+    conc_fluxes(:, s('N2'))=0.0;
+    conc_fluxes(:, s('CO2'))=0.0;
+    conc_fluxes(:, s('HCO3'))=0.0;
+    % reshape into long vector
     conc_fluxes = reshape(conc_fluxes, [n_total_chem, 1]);
     div_fluxes = reshape(div_fluxes, [n_total_div, 1]);
     merged_fluxes_2 = [conc_fluxes' div_fluxes'];
