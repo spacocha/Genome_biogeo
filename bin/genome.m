@@ -292,7 +292,7 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         %This is not per mole, but per uM
 	%Check if that is correct
 	%Equation SI4 of Reed et al 2016
-        Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1/1E6);
+        Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1);
 
         % Ft calculated from each sample
 	%Thermodynamic potential factor (unitless)
