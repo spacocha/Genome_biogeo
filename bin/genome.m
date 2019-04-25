@@ -385,8 +385,18 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%These genes are arrayed in the same way as the genome
 	%So for anything that has a gene, it should change based on that rate
 	%cycle through all of the organisms and increase their numbers according to gene content and rates
+	%I need to add some kind of carrying capacity here
+	%Maybe sum how many total cells there are and cap at some number
+	% Is any room for growth?
+	%if this number is positive, divide by all the growth that will happen
 	for gx = 1 : Cmax
-		div_fluxes(x, gx) = div_fluxes(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
+		total_div_increase(x, gx)= total_div_increase(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
+	end
+	room_for_growth(x)=carrying_capacity - sum(total_div_increase(x, :));
+
+	%I should also change sum to max at some point
+	for gx = 1 : Cmax
+		div_fluxes(x, gx) = div_fluxes(x, gx) + times(room_for_growth(x), rdivide(sum(times(ma_op_rates,div_mat(gx,3:end))),total_div_increase(x, gx))) - rdivide(lambda*div(x,gx),total_div_increase(x, gx));
 	end
         
         % diffusion      
