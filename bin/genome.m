@@ -12,16 +12,16 @@ Gmax=250;
 carbon_precipitation = 0.1;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
-oxygen_source=1;
-carbon_source=10;
+oxygen_source=0;
+carbon_source=0;
 nitrogen_source=0.0;
 %Currently there isn't any release of ammonia upon degredation
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
 lambda=0.001; %from Reed et al table S2
-D_cell_plus=0.001;
-D_cell_minus=0.001;
+D_cell_plus=0.01;
+D_cell_minus=0.01;
 
 %% Species map
 % import the species list using the separate function file:
