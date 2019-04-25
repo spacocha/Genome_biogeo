@@ -44,19 +44,19 @@ precipitation_constant_input = [
 cox_sp_growth_rate=0.28;
 cox_half_sat_C=0.7;
 cox_half_sat_O=0.121;
-cox_hs_inhib=0; %I'm not sure what to put if there isn't an inhib
+cox_hs_inhib=1; %This is arbitrary non-zero number to make ma_op_inhib_eq 1
 nar_sp_growth_rate=0.151;
 nar_half_sat_C=0.7;
 nar_half_sat_N=0.3;
-nar_hs_inhib=0; %nothing
+nar_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 nir_sp_growth_rate=0.247;
 nir_half_sat_C=0.7;
 nir_half_sat_N=0.3;
-nir_hs_inhib=0; %nothing
+nir_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 nrf_sp_growth_rate=0.162;
 nrf_half_sat_C=0.7;
 nrf_half_sat_N=0.3;
-nrf_hs_inhib=0; %nothing
+nrf_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 dsr_sp_growth_rate=0.0636;
 dsr_half_sat_C=0.7;
 dsr_half_sat_S=3;
@@ -64,7 +64,7 @@ dsr_hs_inhib=15;
 amo_sp_growth_rate=0.432;
 amo_half_sat_N=107;
 amo_half_sat_O=18.75;
-amo_hs_inhib=0; %nothing
+amo_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 hzo_sp_growth_rate=0.864;
 hzo_half_sat_Nm=5;
 hzo_half_sat_N=5;
@@ -72,20 +72,20 @@ hzo_hs_inhib=0.2;
 nor_sp_growth_rate=0.432;
 nor_half_sat_N=64.3;
 nor_half_sat_O=16.9;
-nor_hs_inhib=0; %nothing
+nor_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 sox_sp_growth_rate=0.864;
 sox_half_sat_S=0.121;
 sox_half_sat_O=0.121;
-sox_hs_inhib=0; %nothing
+sox_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 nap_sp_growth_rate=0.864;
 nap_half_sat_N=0.121;
 nap_half_sat_S=0.121;
-nap_hs_inhib=0; %nothing
+nap_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 %Test with sulfur disproport
 sdp_sp_growth_rate=0.864;
 sdp_half_sat_H=0.121;
 sdp_half_sat_S=0.121;
-sdp_hs_inhib=0; %nothing
+sdp_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 %The deltaG0 are
 %in kJ/mol
 %G from 298K
@@ -111,17 +111,17 @@ ma_op_rxns = [
     % half_sat (uM or nM as in SI of Reed et al)
     % deltaG0 (kJ/mol)
     % separated by three spaces
-    0.167   s('C')   1   s('O')   1   s('null')   1   s('CO2')   1   s('H2O')   1   s('null')   cox_sp_growth_rate   cox_half_sat_C   cox_half_sat_O   cox_hs_inhib   s('null')   cox_deltaG0
+    0.167   s('C')   1   s('O')   1   s('null')   1   s('CO2')   1   s('H2O')   1   s('null')   cox_sp_growth_rate   cox_half_sat_C   cox_half_sat_O   cox_hs_inhib   s('zero')   cox_deltaG0
     0.167   s('C')   2   s('N+')   1   s('null')   1   s('CO2')   1   s('N')   1   s('H2O')   nar_sp_growth_rate   nar_half_sat_C   nar_half_sat_N   nar_hs_inhib   s('O')   nar_deltaG0
-    0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_hs_inhib   s('null')   nir_deltaG0
-    0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_hs_inhib   s('null')   nrf_deltaG0
+    0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_hs_inhib   s('zero')   nir_deltaG0
+    0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_hs_inhib   s('zero')   nrf_deltaG0
     0.167   s('C')   0.5   s('S+')   1   s('null')   1   s('HCO3')   0.5   s('S-')   1   s('null')   dsr_sp_growth_rate   dsr_half_sat_C   dsr_half_sat_S   dsr_hs_inhib   s('O')   dsr_deltaG0
-    0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_hs_inhib   s('null')   nap_deltaG0
-    1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_hs_inhib   s('null') sox_deltaG0
-    1   s('N-')   1.5   s('O')   1   s('null')   1   s('N')   1   s('H2O')   2   s('H')   amo_sp_growth_rate   amo_half_sat_N   amo_half_sat_O   amo_hs_inhib   s('null')   amo_deltaG0
+    0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_hs_inhib   s('zero')   nap_deltaG0
+    1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_hs_inhib   s('zero') sox_deltaG0
+    1   s('N-')   1.5   s('O')   1   s('null')   1   s('N')   1   s('H2O')   2   s('H')   amo_sp_growth_rate   amo_half_sat_N   amo_half_sat_O   amo_hs_inhib   s('zero')   amo_deltaG0
     1   s('N-')   1   s('N')   1   s('null')   1   s('N2')   2   s('H2O')   1   s('null')   hzo_sp_growth_rate   hzo_half_sat_Nm   hzo_half_sat_N   hzo_hs_inhib   s('O')   hzo_deltaG0
-    2   s('N')   1   s('O')   1   s('null')   2   s('N+')   1   s('null')   1   s('null')   nor_sp_growth_rate   nor_half_sat_N   nor_half_sat_O   nor_hs_inhib   s('null')   nor_deltaG0
-    4   s('H2O')   4   s('S')   1   s('null')   3   s('S-')   1   s('S+')   2   s('H')   sdp_sp_growth_rate   sdp_half_sat_H   sdp_half_sat_S   sdp_hs_inhib   s('null')   sdp_deltaG0   
+    2   s('N')   1   s('O')   1   s('null')   2   s('N+')   1   s('null')   1   s('null')   nor_sp_growth_rate   nor_half_sat_N   nor_half_sat_O   nor_hs_inhib   s('zero')   nor_deltaG0
+    4   s('H2O')   4   s('S')   1   s('null')   3   s('S-')   1   s('S+')   2   s('H')   sdp_sp_growth_rate   sdp_half_sat_H   sdp_half_sat_S   sdp_hs_inhib   s('zero')   sdp_deltaG0   
 ];
 [n_ma_op_rxns, ~] = size(ma_op_rxns);
 
@@ -294,7 +294,7 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         ma_op_prod1 = concs_row(ma_op_prod1_i);
         ma_op_prod2 = concs_row(ma_op_prod2_i);
         ma_op_prod3 = concs_row(ma_op_prod3_i);
-
+	ma_op_inhib = concs_row(ma_op_hs_inhib_i);
         % Calculate deltaG
         % R is gas constant kJ K-1 mole -1
         % room temp in Kelvin
@@ -324,7 +324,10 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
         % Now use gamma to calculate the rate of the reaction
         %Gamma is a vector of the sum of genes for each reaction
 	%Based on equation 1 of Reed et al
-        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1)), rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2))))));
+	half_sat_eq_1 = rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1));
+	half_sat_eq_2 = rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2));
+	hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
+        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
 %        ma_op_rates_mat(x, :)=ma_op_rates;
 
 end
