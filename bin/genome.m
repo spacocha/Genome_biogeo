@@ -12,8 +12,8 @@ Gmax=250;
 carbon_precipitation = 0.1;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
-oxygen_source=6.6;
-carbon_source=9.4;
+oxygen_source=1;
+carbon_source=10;
 nitrogen_source=0.0;
 %Currently there isn't any release of ammonia upon degredation
 %Maybe add this somehow with this from the amount of C removed 
