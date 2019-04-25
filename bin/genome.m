@@ -48,15 +48,15 @@ cox_hs_inhib=1; %This is arbitrary non-zero number to make ma_op_inhib_eq 1
 nar_sp_growth_rate=0.151;
 nar_half_sat_C=0.7;
 nar_half_sat_N=0.3;
-nar_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
+nar_hs_inhib=15; %%based on dsr inhib half sat constant
 nir_sp_growth_rate=0.247;
 nir_half_sat_C=0.7;
 nir_half_sat_N=0.3;
-nir_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
+nir_hs_inhib=15; %%based on dsr inhib half sat constant
 nrf_sp_growth_rate=0.162;
 nrf_half_sat_C=0.7;
 nrf_half_sat_N=0.3;
-nrf_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
+nrf_hs_inhib=15; %based on dsr inhib half sat constant
 dsr_sp_growth_rate=0.0636;
 dsr_half_sat_C=0.7;
 dsr_half_sat_S=3;
@@ -68,7 +68,7 @@ amo_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 hzo_sp_growth_rate=0.864;
 hzo_half_sat_Nm=5;
 hzo_half_sat_N=5;
-hzo_hs_inhib=0.2;
+hzo_hs_inhib=0.2; %From Reed et al
 nor_sp_growth_rate=0.432;
 nor_half_sat_N=64.3;
 nor_half_sat_O=16.9;
@@ -80,12 +80,12 @@ sox_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
 nap_sp_growth_rate=0.864;
 nap_half_sat_N=0.121;
 nap_half_sat_S=0.121;
-nap_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
+nap_hs_inhib=0.2; %based on hzo inhibition hs constant
 %Test with sulfur disproport
 sdp_sp_growth_rate=0.864;
 sdp_half_sat_H=0.121;
 sdp_half_sat_S=0.121;
-sdp_hs_inhib=1; %arbitrary non-zero number to make ma_op_inhib_eq 1
+sdp_hs_inhib=0.2; %based on hzo inhibition hs constant
 %The deltaG0 are
 %in kJ/mol
 %G from 298K
@@ -113,15 +113,15 @@ ma_op_rxns = [
     % separated by three spaces
     0.167   s('C')   1   s('O')   1   s('null')   1   s('CO2')   1   s('H2O')   1   s('null')   cox_sp_growth_rate   cox_half_sat_C   cox_half_sat_O   cox_hs_inhib   s('zero')   cox_deltaG0
     0.167   s('C')   2   s('N+')   1   s('null')   1   s('CO2')   1   s('N')   1   s('H2O')   nar_sp_growth_rate   nar_half_sat_C   nar_half_sat_N   nar_hs_inhib   s('O')   nar_deltaG0
-    0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_hs_inhib   s('zero')   nir_deltaG0
-    0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_hs_inhib   s('zero')   nrf_deltaG0
+    0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_hs_inhib   s('O')   nir_deltaG0
+    0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_hs_inhib   s('O')   nrf_deltaG0
     0.167   s('C')   0.5   s('S+')   1   s('null')   1   s('HCO3')   0.5   s('S-')   1   s('null')   dsr_sp_growth_rate   dsr_half_sat_C   dsr_half_sat_S   dsr_hs_inhib   s('O')   dsr_deltaG0
-    0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_hs_inhib   s('zero')   nap_deltaG0
+    0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_hs_inhib   s('O')   nap_deltaG0
     1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_hs_inhib   s('zero') sox_deltaG0
     1   s('N-')   1.5   s('O')   1   s('null')   1   s('N')   1   s('H2O')   2   s('H')   amo_sp_growth_rate   amo_half_sat_N   amo_half_sat_O   amo_hs_inhib   s('zero')   amo_deltaG0
     1   s('N-')   1   s('N')   1   s('null')   1   s('N2')   2   s('H2O')   1   s('null')   hzo_sp_growth_rate   hzo_half_sat_Nm   hzo_half_sat_N   hzo_hs_inhib   s('O')   hzo_deltaG0
     2   s('N')   1   s('O')   1   s('null')   2   s('N+')   1   s('null')   1   s('null')   nor_sp_growth_rate   nor_half_sat_N   nor_half_sat_O   nor_hs_inhib   s('zero')   nor_deltaG0
-    4   s('H2O')   4   s('S')   1   s('null')   3   s('S-')   1   s('S+')   2   s('H')   sdp_sp_growth_rate   sdp_half_sat_H   sdp_half_sat_S   sdp_hs_inhib   s('zero')   sdp_deltaG0   
+    4   s('H2O')   4   s('S')   1   s('null')   3   s('S-')   1   s('S+')   2   s('H')   sdp_sp_growth_rate   sdp_half_sat_H   sdp_half_sat_S   sdp_hs_inhib   s('O')   sdp_deltaG0   
 ];
 [n_ma_op_rxns, ~] = size(ma_op_rxns);
 
@@ -184,13 +184,10 @@ div_mat(2,4)=1;
 div_mat(3,5)=1;
 div_mat(4,6)=1;
 div_mat(5,7)=1;
-%remove nap genes
-div_mat(6,8)=0;
-%turn off sox by removing genes
-div_mat(7,9)=0;
+div_mat(6,8)=1;
+div_mat(7,9)=1;
 div_mat(8,10)=1;
-%turn off hzo by removing genes
-div_mat(9,11)=0;
+div_mat(9,11)=1;
 div_mat(10,12)=1;
 %turn off sdp by removing genes from the community
 div_mat(11,13)=0;
