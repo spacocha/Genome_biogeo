@@ -385,17 +385,9 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%These genes are arrayed in the same way as the genome
 	%So for anything that has a gene, it should change based on that rate
 	%cycle through all of the organisms and increase their numbers according to gene content and rates
-	%Remove conc flux
 	for gx = 1 : Cmax
 		div_fluxes(x, gx) = div_fluxes(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end))) - lambda*div(x,gx);
 	end
-
-        % apply the primary oxidation rates
-        %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(po_tea_i, tea_rates, [n_species, 1])';
-        %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(po_tea_prod_i, tea_rates, [n_species, 1])';
-        
-        %conc_fluxes(x, s('C')) = conc_fluxes(x, s('C')) - po_carbon_rate;
-        %conc_fluxes(x, s('N-')) = conc_fluxes(x, s('N-')) + nitrogen_ratio * po_carbon_rate;
         
         % diffusion      
         if x > 1
@@ -411,9 +403,13 @@ function [merged_fluxes] = flux(~, merged_vector)
                 div_fluxes(x,gx)=div_fluxes(x, gx) - D_cell_plus .* div(x, gx) + D_cell_minus .* div(x+1, gx);
 	    end
         end
-
+        %For any carbon that is used for energy, I want to release N
+	%This should be for any carbon oxidizing processes
+	temp_flux(x, :) = accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
+	%16 times amount of oxidized carbon
+	conc_fluxes(x, s('N-'))=conc_fluxes(x, s('N-')) + 16*(temp_flux(x, s('C')));
     end % for x
-    
+
     %Fix buffered values so they don't change
     conc_fluxes(:, s('null'))=0.0;
     conc_fluxes(:, s('H2O'))=0.0;
@@ -421,6 +417,7 @@ function [merged_fluxes] = flux(~, merged_vector)
     conc_fluxes(:, s('N2'))=0.0;
     conc_fluxes(:, s('CO2'))=0.0;
     conc_fluxes(:, s('HCO3'))=0.0;
+    conc_fluxes(:, s('zero'))=0.0;
     % reshape into long vector
     conc_fluxes = reshape(conc_fluxes, [n_total_chem, 1]);
     div_fluxes = reshape(div_fluxes, [n_total_div, 1]);
