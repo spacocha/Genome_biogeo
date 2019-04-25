@@ -59,20 +59,20 @@ dsr_half_sat_S=3;
 amo_sp_growth_rate=0.432;
 amo_half_sat_N=107;
 amo_half_sat_O=18.75;
-hzo_sp_growth_rate=0.4;
+hzo_sp_growth_rate=0.864;
 hzo_half_sat_Nm=5;
 hzo_half_sat_N=5;
 nor_sp_growth_rate=0.432;
 nor_half_sat_N=64.3;
 nor_half_sat_O=16.9;
-sox_sp_growth_rate=0.4;
+sox_sp_growth_rate=0.864;
 sox_half_sat_S=0.121;
 sox_half_sat_O=0.121;
-nap_sp_growth_rate=0.4;
+nap_sp_growth_rate=0.864;
 nap_half_sat_N=0.121;
 nap_half_sat_S=0.121;
 %Test with sulfur disproport
-sdp_sp_growth_rate=0.4;
+sdp_sp_growth_rate=0.864;
 sdp_half_sat_H=0.121;
 sdp_half_sat_S=0.121;
 %The deltaG0 are
@@ -171,12 +171,16 @@ div_mat(2,4)=1;
 div_mat(3,5)=1;
 div_mat(4,6)=1;
 div_mat(5,7)=1;
-div_mat(6,8)=1;
-div_mat(7,9)=1;
+%remove nap genes
+div_mat(6,8)=0;
+%turn off sox by removing genes
+div_mat(7,9)=0;
 div_mat(8,10)=1;
-div_mat(9,11)=1;
+%turn off hzo by removing genes
+div_mat(9,11)=0;
 div_mat(10,12)=1;
-div_mat(11,13)=1;
+%turn off sdp by removing genes from the community
+div_mat(11,13)=0;
 %This will be for random structure
 %for x = 1: Cmax
 %   %set the copies to 1;
