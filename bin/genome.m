@@ -352,13 +352,13 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%adding products
 	%MISSING the stoichiometry for these reactions
 	%React 1 is the electron donor, so it doesn't need to be adjusted by stochiometry
-        %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
 	%Others need to be adjusted by the relationship between the stoichiometry of 1 and itself
-        %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, times(rdivide(ma_op_reac2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
-        %conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, times(rdivide(ma_op_reac3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
-        %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, times(rdivide(ma_op_prod1_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
-        %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, times(rdivide(ma_op_prod2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
-        %conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, times(rdivide(ma_op_prod3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac2_i, times(rdivide(ma_op_reac2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) - accumarray(ma_op_reac3_i, times(rdivide(ma_op_reac3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod1_i, times(rdivide(ma_op_prod1_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod2_i, times(rdivide(ma_op_prod2_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
+        conc_fluxes(x, :) = conc_fluxes(x, :) + accumarray(ma_op_prod3_i, times(rdivide(ma_op_prod3_c,ma_op_reac1_c),rdivide(ma_op_rates,Y)), [n_species, 1])';
 
 	%aaply the growth terms
 	%This is based on equation 2 of Reed et al?
