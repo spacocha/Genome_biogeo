@@ -300,6 +300,14 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	numerator=times(times(power(ma_op_prod3/1E6,ma_op_prod3_c), power(ma_op_prod2/1E6,ma_op_prod2_c)), power(ma_op_prod1/1E6,ma_op_prod1_c));
 	denominator=times(times(power(ma_op_reac3/1E6,ma_op_reac3_c), power(ma_op_reac2/1E6,ma_op_reac2_c)), power(ma_op_reac1/1E6, ma_op_reac1_c));
 	Q=rdivide(numerator,denominator);
+        %Ensure no values become less than eq to 0
+	for j = 1 : Cmax
+		if Q(j) <= 1E-12
+			%If so, that means very little product and or a lot of reactant
+			%make it so that it is small, but increases by standard amount
+			Q(j)=1E-12;
+		end
+	end	
 	g = 0.0083144598 *298*log(Q);
 	ma_op_deltaG = plus(ma_op_deltaG0, g);
     
@@ -308,7 +316,7 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	%Check if that is correct
 	%Equation SI4 of Reed et al 2016
         Y = 2.08 - 0.0211*rdivide(ma_op_deltaG,ma_op_reac1);
-
+		
         % Ft calculated from each sample
 	%Thermodynamic potential factor (unitless)
 	%Equation S1 of Reed et al
