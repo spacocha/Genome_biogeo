@@ -1,4 +1,4 @@
-function [time_slices, y] = genome(t_max, concs0)
+function [time_slices, y, div_mat] = genome(t_max, Cmax, Pmax, Gmax, concs0)
 
 %% Simulation parameters
 % These are constants that affect the simulation but do not make
@@ -6,9 +6,9 @@ function [time_slices, y] = genome(t_max, concs0)
 n_x = 17;   % number of compartments
 n_time_slices = 100;
 %t_max=100.0;
-Cmax=11;
-Pmax=500;
-Gmax=250;
+%Cmax=15;
+%Pmax=15;
+%Gmax=15;
 carbon_precipitation = 0.5;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
@@ -175,78 +175,82 @@ ma_op_deltaG0 = ma_op_rxns(:, 18)';
 % Genes to mediate any of the 10 ma_op reactions? 0, no or 1, yes
 % Also, the total number of genes in the genome
 % Initiate all with 1 copy
-% matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor]
+% matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor, sdp]
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
-div_mat=zeros(11, 13);
-%Set up temp structure for now with each function represented onces
-div_mat(1,3)=1;
-div_mat(2,4)=1;
-div_mat(3,5)=1;
-div_mat(4,6)=1;
-div_mat(5,7)=1;
-div_mat(6,8)=1;
-div_mat(7,9)=1;
-div_mat(8,10)=10;
-div_mat(9,11)=0;
-div_mat(10,12)=10;
+div_mat=zeros(Cmax, n_ma_op_rxns+2);
+%Set up temp structure for now with each function represented once
+%div_mat(1,3)=1;
+%div_mat(2,4)=1;
+%div_mat(3,5)=1;
+%div_mat(4,6)=1;
+%div_mat(5,7)=1;
+%div_mat(6,8)=1;
+%div_mat(7,9)=1;
+%div_mat(8,10)=10;
+%div_mat(9,11)=0;
+%div_mat(10,12)=10;
 %turn off sdp by removing genes from the community
-div_mat(11,13)=0;
+%div_mat(11,13)=0;
 %This will be for random structure
-%for x = 1: Cmax
+for x = 1: Cmax
 %   %set the copies to 1;
-%   div_mat(x, 1)=1;
-%   genome_length = randi(Gmax);
-%   div_mat(x, 2)=genome_length;
-%   genome_compo = randi(Pmax,genome_length,1);
+   div_mat(x, 1)=1;
+   genome_length = randi(Gmax);
+   div_mat(x, 2)=genome_length;
+   genome_compo = randi(Pmax,genome_length,1);
 %   % set up the rows of div_mat according to genome composition
 %   %glut1 is gene 13
 %   if ismember(13,genome_compo)
 %      %cox is gene 1
-%      if ismember(1,genome_compo)
-%         div_mat(x,3)=1;
-%      end
+      if ismember(1,genome_compo)
+         div_mat(x,3)=1;
+      end
 %      %nar is gene 2
-%      if ismember(2,genome_compo)
-%         div_mat(x,4)=1;
-%      end
+      if ismember(2,genome_compo)
+         div_mat(x,4)=1;
+      end
 %      %nir is gene 3
-%      if ismember(3, genome_compo)
-%         div_mat(x,5)=1;
-%      end
+      if ismember(3, genome_compo)
+         div_mat(x,5)=1;
+      end
 %      %nrf is gene 4
-%     if ismember(4, genome_compo)
-%         div_mat(x, 6)=1;
-%      end
+     if ismember(4, genome_compo)
+         div_mat(x, 6)=1;
+      end
 %      %dsr is gene 5
-%      if ismember(5, genome_compo)
-%         div_mat(x, 7)=1;
-%      end
+      if ismember(5, genome_compo)
+         div_mat(x, 7)=1;
+      end
 %   end
 %   %rbcl is gene 6
 %   if ismember(6, genome_compo)
 %      %nap is gene 7 
-%      if ismember(7, genome_compo)
-%         div_mat(x, 8)=1;
-%      end
+      if ismember(6, genome_compo)
+         div_mat(x, 8)=1;
+      end
 %      %sox is gene 8
-%      if ismember(8, genome_compo)
-%         div_mat(x, 9)=1;
-%      end
+      if ismember(7, genome_compo)
+         div_mat(x, 9)=1;
+      end
 %      %amoA is gene 9
-%      if ismember(9, genome_compo)
-%         div_mat(x, 10)=1;
-%      end
+      if ismember(8, genome_compo)
+         div_mat(x, 10)=1;
+      end
 %      %hzo is gene 10
-%      if ismember(10, genome_compo)
-%         div_mat(x,11)=1;
-%      end
+      if ismember(9, genome_compo)
+         div_mat(x,11)=1;
+      end
 %      %nor is gene 11
-%      if ismember(11, genome_compo)
-%         div_mat(x, 12)=1;
-%      end
+      if ismember(10, genome_compo)
+         div_mat(x, 12)=1;
+      end
+	%sdp is gene 11
+      if ismember(11, genome_compo)
+	 div_mat(x, 13)=1;
+      end
 %   end
-%end
+end
 
 n_total_chem = n_x * n_species;
 %for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
@@ -301,7 +305,7 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	denominator=times(times(power(ma_op_reac3/1E6,ma_op_reac3_c), power(ma_op_reac2/1E6,ma_op_reac2_c)), power(ma_op_reac1/1E6, ma_op_reac1_c));
 	Q=rdivide(numerator,denominator);
         %Ensure no values become less than eq to 0
-	for j = 1 : Cmax
+	for j = 1 : n_ma_op_rxns
 		if Q(j) <= 1E-12
 			%If so, that means very little product and or a lot of reactant
 			%make it so that it is small, but increases by standard amount
@@ -404,7 +408,7 @@ function [merged_fluxes] = flux(~, merged_vector)
 	room_for_growth(1, x) = carrying_capacity - sum(div(x, :));
 	%if this number is positive, divide by all the growth that will happen
 	for gx = 1 : Cmax
-		total_div_increases(x, gx)= total_div_increases(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end)));
+		total_div_increases(x, gx)= total_div_increases(x, gx) + max(times(ma_op_rates,div_mat(gx,3:end)));
 	end
 	
 	actual_div_increases(1, x)=min([room_for_growth(1, x), sum(total_div_increases(x,:))]);
@@ -415,7 +419,7 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%I should also change sum to max at some point
 	for gx = 1 : Cmax
 		%if sum(total_div_increases(x, :)) > 0
-			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(sum(times(ma_op_rates,div_mat(gx,3:end))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
+			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(max(times(ma_op_rates,div_mat(gx,3:end))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
 		%else
 		%	div_fluxes(x, gx) = div_fluxes(x, gx) - lambda*div(x,gx);
 		%end
