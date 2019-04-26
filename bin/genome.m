@@ -98,9 +98,9 @@ nrf_deltaG0=-343.9649; %subcrt(c(1646, 17, 3, 1576, 18, 1), c(-1/6, -2/3, -4/3, 
 dsr_deltaG0=-76.10632; %subcrt(c(1646, 24, 13, 67), c(-1/6, -1/2, 1, 1/2), T=seq(298, 299, 300))
 nap_deltaG0=-100.4539; %subcrt(c(67, 65, 13, 1576, 24, 1), c(-1, -2, -2, 2, 1, 1), T=seq(298, 299, 300))
 sox_deltaG0=-822.0793; %subcrt(c(18, 65, 17, 1, 3), c(-1, -3/2, 1, 1, 2), T=seq(298, 299, 300));
-amo_deltaG0=-800; %-214.7716 from subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
+amo_deltaG0=-214.7716; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
 hzo_deltaG0=-344.5038; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
-nor_deltaG0=-800; %-173.9297 from subcrt(c(65, 17, 16), c(-1, -2, 2), T=seq(298, 299, 300))
+nor_deltaG0=-173.9297; %subcrt(c(65, 17, 16), c(-1, -2, 2), T=seq(298, 299, 300))
 sdp_deltaG0=120.51; %From Aquatic Geomicrobiology vol 48 Canfield
 % mass action, one product reactions (ma_op_rxns)
 ma_op_rxns = [
@@ -437,9 +437,10 @@ function [merged_fluxes] = flux(~, merged_vector)
         end
         %For any carbon that is used for energy, I want to release N
 	%This should be for any carbon oxidizing processes
-	temp_flux(x, :) = accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
+	%Removed because nitrification wasn't happening fast enough
+	%temp_flux(x, :) = accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
 	%16 times amount of oxidized carbon
-	conc_fluxes(x, s('N-'))=conc_fluxes(x, s('N-')) + 16*(temp_flux(x, s('C')));
+	%conc_fluxes(x, s('N-'))=conc_fluxes(x, s('N-')) + 16*(temp_flux(x, s('C')));
     end % for x
 
     %Fix buffered values so they don't change
