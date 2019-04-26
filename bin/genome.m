@@ -15,7 +15,7 @@ oxygen_bubble_rate=0;
 oxygen_source=0;
 carbon_source=0;
 nitrogen_source=0.0;
-carrying_capacity=10;
+carrying_capacity=20;
 %Currently there isn't any release of ammonia upon degredation
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
@@ -349,8 +349,8 @@ function [merged_fluxes] = flux(~, merged_vector)
     conc_fluxes = zeros(n_x, n_species);
     div_fluxes = zeros(n_x, Cmax);
     total_div_increases = zeros(n_x, Cmax);
-    room_for_growth = zeros(n_x);
-    actual_div_increases=zeros(n_x);
+    room_for_growth = zeros(1, n_x);
+    actual_div_increases=zeros(1, n_x);
     % apply the oxygen bubbles
     conc_fluxes(:, s('O')) = conc_fluxes(:, s('O')) + oxygen_bubble_rate;
 
@@ -392,16 +392,17 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%I need to add some kind of carrying capacity here
 	%Maybe sum how many total cells there are and cap at some number
 	% Is any room for growth?
-	room_for_growth(x) = carrying_capacity - sum(div(x, :));
+	room_for_growth(1, x) = carrying_capacity - sum(div(x, :));
 	%if this number is positive, divide by all the growth that will happen
 	for gx = 1 : Cmax
-		total_div_increases(x, gx)= total_div_increases(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end)));;
+		total_div_increases(x, gx)= total_div_increases(x, gx) + sum(times(ma_op_rates,div_mat(gx,3:end)));
 	end
-	%actual_div_increases(x)=min(room_for_growth(x), sum(total_div_increases(x,:)));
-	actual_div_increases(x)=sum(total_div_increases(x,:));
-	%if actual_div_increases(x) < 0
-%		actual_div_increases(x) = 0;
-%	end
+	
+	actual_div_increases(1, x)=min([room_for_growth(1, x), sum(total_div_increases(x,:))]);
+	%actual_div_increases(1, x)=sum(total_div_increases(x,:));
+	if actual_div_increases(x) < 0
+		actual_div_increases(x) = 0;
+	end
 	%I should also change sum to max at some point
 	for gx = 1 : Cmax
 		%if sum(total_div_increases(x, :)) > 0
