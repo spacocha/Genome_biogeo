@@ -9,7 +9,7 @@ n_time_slices = 100;
 Cmax=11;
 Pmax=500;
 Gmax=250;
-carbon_precipitation = 0.1;
+carbon_precipitation = 0.5;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
 oxygen_source=5;
@@ -438,9 +438,9 @@ function [merged_fluxes] = flux(~, merged_vector)
         %For any carbon that is used for energy, I want to release N
 	%This should be for any carbon oxidizing processes
 	%Removed because nitrification wasn't happening fast enough
-	%temp_flux(x, :) = accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
-	%16 times amount of oxidized carbon
-	%conc_fluxes(x, s('N-'))=conc_fluxes(x, s('N-')) + 16*(temp_flux(x, s('C')));
+	temp_flux(x, :) = accumarray(ma_op_reac1_i, rdivide(ma_op_rates,Y), [n_species, 1])';
+	%16 times amount of oxidized carbon, but assume some for growth
+	conc_fluxes(x, s('N-'))=conc_fluxes(x, s('N-')) + 3*(temp_flux(x, s('C')));
     end % for x
 
     %Fix buffered values so they don't change
