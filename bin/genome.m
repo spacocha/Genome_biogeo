@@ -12,7 +12,7 @@ Gmax=250;
 carbon_precipitation = 0.1;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
-oxygen_source=0;
+oxygen_source=5;
 carbon_source=0;
 nitrogen_source=0.0;
 carrying_capacity=20;
@@ -20,7 +20,7 @@ carrying_capacity=20;
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
-lambda=0.1; %from Reed et al table S2
+lambda=0.01; %0.001 from Reed et al table S2
 D_cell_plus=0.01;
 D_cell_minus=0.01;
 
