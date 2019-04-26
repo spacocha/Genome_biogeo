@@ -15,7 +15,7 @@ oxygen_bubble_rate=0;
 oxygen_source=5;
 carbon_source=0;
 nitrogen_source=0.0;
-carrying_capacity=20;
+carrying_capacity=1000;
 %Currently there isn't any release of ammonia upon degredation
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
@@ -332,8 +332,9 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	%Based on equation 1 of Reed et al
 	half_sat_eq_1 = rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1));
 	half_sat_eq_2 = rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2));
-	hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
-        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
+	%hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
+        %ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
+	ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, half_sat_eq_2))));
 %        ma_op_rates_mat(x, :)=ma_op_rates;
 
 end
