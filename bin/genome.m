@@ -98,9 +98,9 @@ nrf_deltaG0=-343.9649; %subcrt(c(1646, 17, 3, 1576, 18, 1), c(-1/6, -2/3, -4/3, 
 dsr_deltaG0=-76.10632; %subcrt(c(1646, 24, 13, 67), c(-1/6, -1/2, 1, 1/2), T=seq(298, 299, 300))
 nap_deltaG0=-100.4539; %subcrt(c(67, 65, 13, 1576, 24, 1), c(-1, -2, -2, 2, 1, 1), T=seq(298, 299, 300))
 sox_deltaG0=-822.0793; %subcrt(c(18, 65, 17, 1, 3), c(-1, -3/2, 1, 1, 2), T=seq(298, 299, 300));
-amo_deltaG0=-214.7716; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
+amo_deltaG0=-800; %-214.7716 from subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
 hzo_deltaG0=-344.5038; %subcrt(c(18, 17, 74, 1), c(-1, -1, 1, 2), T=seq(298, 299, 300))
-nor_deltaG0=-173.9297; %subcrt(c(65, 17, 16), c(-1, -2, 2), T=seq(298, 299, 300))
+nor_deltaG0=-800; %-173.9297 from subcrt(c(65, 17, 16), c(-1, -2, 2), T=seq(298, 299, 300))
 sdp_deltaG0=120.51; %From Aquatic Geomicrobiology vol 48 Canfield
 % mass action, one product reactions (ma_op_rxns)
 ma_op_rxns = [
@@ -332,9 +332,9 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	%Based on equation 1 of Reed et al
 	half_sat_eq_1 = rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1));
 	half_sat_eq_2 = rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2));
-	%hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
-        %ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
-	ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, half_sat_eq_2))));
+	hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
+        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
+	%ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, half_sat_eq_2))));
 %        ma_op_rates_mat(x, :)=ma_op_rates;
 
 end
