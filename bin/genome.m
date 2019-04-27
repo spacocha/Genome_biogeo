@@ -408,7 +408,8 @@ function [merged_fluxes] = flux(~, merged_vector)
 	room_for_growth(1, x) = carrying_capacity - sum(div(x, :));
 	%if this number is positive, divide by all the growth that will happen
 	for gx = 1 : Cmax
-		total_div_increases(x, gx)= total_div_increases(x, gx) + max(times(ma_op_rates,div_mat(gx,3:end)));
+		ec=1-div_mat(gx, 2)*(1/Gmax);
+		total_div_increases(x, gx)= total_div_increases(x, gx) + times(ec,sum(times(ma_op_rates,div_mat(gx,3:end))));
 	end
 	
 	actual_div_increases(1, x)=min([room_for_growth(1, x), sum(total_div_increases(x,:))]);
@@ -419,7 +420,8 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%I should also change sum to max at some point
 	for gx = 1 : Cmax
 		%if sum(total_div_increases(x, :)) > 0
-			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(max(times(ma_op_rates,div_mat(gx,3:end))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
+			ec=1-div_mat(gx, 2)*(1/Gmax);
+			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(times(ec,sum(times(ma_op_rates,div_mat(gx,3:end)))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
 		%else
 		%	div_fluxes(x, gx) = div_fluxes(x, gx) - lambda*div(x,gx);
 		%end
