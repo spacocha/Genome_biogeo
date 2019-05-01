@@ -12,7 +12,7 @@ n_time_slices = 100;
 carbon_precipitation = 0.5;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
-oxygen_source=10;
+oxygen_source=1;
 carbon_source=1;
 nitrogen_source=0.0;
 carrying_capacity=1000;
@@ -24,8 +24,12 @@ lambda=0.01; %0.001 from Reed et al table S2
 D_cell_plus=0.01;
 D_cell_minus=0.01;
 
-%make random actually random
-%rng shuffle;
+%make random actually random or repeatable
+%actually random, toggle next line on
+%rng('shuffle');
+%repeatable, toggle next line on
+rng(1);
+
 %% Species map
 % import the species list using the separate function file:
 % "s" is a hash from a string that names the species to its index in the
@@ -40,7 +44,7 @@ precipitation_constant_input = [
     s('C'), carbon_precipitation
 ];
 
-%% Reaction constants
+%% Define Reaction constants and equations
 % there are mass action reactions and the primary oxidations
 % reactions from Reed et al PNAS (2014) 111(5):1879-1884
 % SI table S2
