@@ -25,7 +25,7 @@ D_cell_plus=0.01;
 D_cell_minus=0.01;
 
 %make random actually random
-rng shuffle;
+%rng shuffle;
 %% Species map
 % import the species list using the separate function file:
 % "s" is a hash from a string that names the species to its index in the
