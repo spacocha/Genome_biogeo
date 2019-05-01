@@ -422,8 +422,10 @@ function [merged_fluxes] = flux(~, merged_vector)
 	room_for_growth(1, x) = carrying_capacity - sum(div(x, :));
 	%if this number is positive, divide by all the growth that will happen
 	for gx = 1 : Cmax
+		%ec is the energetic cost of the genome size
 		ec=1-div_mat(gx, 2)*(1/Gmax);
-		total_div_increases(x, gx)= total_div_increases(x, gx) + times(ec,sum(times(ma_op_rates,div_mat(gx,3:end))));
+		%determine how much each individual will increase based on expressed genes and energy from that process
+		total_div_increases(x, gx)= total_div_increases(x, gx) + times(ec,sum(times(ma_op_rates,expression_mat(gx,:))));
 	end
 	
 	actual_div_increases(1, x)=min([room_for_growth(1, x), sum(total_div_increases(x,:))]);
@@ -435,7 +437,7 @@ function [merged_fluxes] = flux(~, merged_vector)
 	for gx = 1 : Cmax
 		%if sum(total_div_increases(x, :)) > 0
 			ec=1-div_mat(gx, 2)*(1/Gmax);
-			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(times(ec,sum(times(ma_op_rates,div_mat(gx,3:end)))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
+			div_fluxes(x, gx) = div_fluxes(x, gx) + times(actual_div_increases(x), rdivide(times(ec,sum(times(ma_op_rates,expression_mat(gx,:)))),sum(total_div_increases(x, :)))) - lambda*div(x,gx);
 		%else
 		%	div_fluxes(x, gx) = div_fluxes(x, gx) - lambda*div(x,gx);
 		%end
