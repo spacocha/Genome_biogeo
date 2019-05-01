@@ -1,4 +1,4 @@
-function [time_slices, y, div_mat] = genome(t_max, Cmax, Pmax, Gmax, concs0)
+function [time_slices, y, div_mat, end_rates_mat] = genome(t_max, Cmax, Pmax, Gmax, concs0)
 
 %% Simulation parameters
 % These are constants that affect the simulation but do not make
@@ -12,7 +12,7 @@ n_time_slices = 100;
 carbon_precipitation = 0.5;
 diffusion_constant=1;
 oxygen_bubble_rate=0;
-oxygen_source=1;
+oxygen_source=0;
 carbon_source=1;
 nitrogen_source=0.0;
 carrying_capacity=1000;
@@ -20,7 +20,7 @@ carrying_capacity=1000;
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
-lambda=0.01; %0.001 from Reed et al table S2
+lambda=0.11; %0.001 from Reed et al table S2
 D_cell_plus=0.01;
 D_cell_minus=0.01;
 
@@ -67,7 +67,7 @@ nrf_hs_inhib=15; %based on dsr inhib half sat constant
 dsr_sp_growth_rate=0.0636;
 dsr_half_sat_C=0.7;
 dsr_half_sat_S=3;
-dsr_hs_inhib=15;
+dsr_hs_inhib=1.5;
 amo_sp_growth_rate=0.432;
 amo_half_sat_N=107;
 amo_half_sat_O=18.75;
@@ -122,7 +122,7 @@ ma_op_rxns = [
     0.167   s('C')   2   s('N+')   1   s('null')   1   s('CO2')   1   s('N')   1   s('H2O')   nar_sp_growth_rate   nar_half_sat_C   nar_half_sat_N   nar_hs_inhib   s('O')   nar_deltaG0
     0.167   s('C')   1.333   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N2')   1.67   s('H2O')   nir_sp_growth_rate   nir_half_sat_C   nir_half_sat_N   nir_hs_inhib   s('O')   nir_deltaG0
     0.167   s('C')   0.67   s('N')   1.333   s('H')   1   s('CO2')   0.67   s('N-')   0.333   s('H2O')   nrf_sp_growth_rate   nrf_half_sat_C   nrf_half_sat_N   nrf_hs_inhib   s('O')   nrf_deltaG0
-    0.167   s('C')   0.5   s('S+')   1   s('null')   1   s('HCO3')   0.5   s('S-')   1   s('null')   dsr_sp_growth_rate   dsr_half_sat_C   dsr_half_sat_S   dsr_hs_inhib   s('N+')   dsr_deltaG0
+    0.167   s('C')   0.5   s('S+')   1   s('null')   1   s('HCO3')   0.5   s('S-')   1   s('null')   dsr_sp_growth_rate   dsr_half_sat_C   dsr_half_sat_S   dsr_hs_inhib   s('O')   dsr_deltaG0
     0.25   s('S-')   1   s('N+')   1   s('null')   1   s('N')   0.25   s('S+')   0.5   s('H')   nap_sp_growth_rate   nap_half_sat_S   nap_half_sat_N   nap_hs_inhib   s('O')   nap_deltaG0
     1   s('S-')   2   s('O')   2   s('HCO3')   2   s('CO2')   1   s('S+')   1   s('H2O')   sox_sp_growth_rate   sox_half_sat_S   sox_half_sat_O   sox_hs_inhib   s('zero') sox_deltaG0
     1   s('N-')   1.5   s('O')   1   s('null')   1   s('N')   1   s('H2O')   2   s('H')   amo_sp_growth_rate   amo_half_sat_N   amo_half_sat_O   amo_hs_inhib   s('zero')   amo_deltaG0
@@ -258,6 +258,7 @@ for x = 1: Cmax
 %   end
 end
 
+
 n_total_chem = n_x * n_species;
 %for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
 n_total_div = n_x * Cmax;
@@ -371,6 +372,7 @@ function [merged_fluxes] = flux(~, merged_vector)
     total_div_increases = zeros(n_x, Cmax);
     room_for_growth = zeros(1, n_x);
     actual_div_increases=zeros(1, n_x);
+    end_rates_mat=zeros(n_x, n_ma_op_rxns);
     % apply the oxygen bubbles
     conc_fluxes(:, s('O')) = conc_fluxes(:, s('O')) + oxygen_bubble_rate;
 
@@ -397,7 +399,7 @@ function [merged_fluxes] = flux(~, merged_vector)
 	%Gamma is the rate of processes from expressed genes 
 	Gamma=sum(div(x, :)'.*expression_mat);
 	ma_op_rates=times(Gamma,ma_op_rates_adj);
-	
+	end_rates_mat(x,:)=ma_op_rates;
         % apply the mass action rates
 	%Based on Equation 3 of Reed et al 
 	%removing reactants
