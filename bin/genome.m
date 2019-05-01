@@ -20,7 +20,7 @@ carrying_capacity=1000;
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
-lambda=0.11; %0.001 from Reed et al table S2
+lambda=0.3; %0.001 from Reed et al table S2
 D_cell_plus=0.01;
 D_cell_minus=0.01;
 
@@ -202,59 +202,78 @@ div_mat=zeros(Cmax, n_ma_op_rxns+2);
 for x = 1: Cmax
 %   %set the copies to 1;
    div_mat(x, 1)=1;
-   genome_length = randi(Gmax);
-   div_mat(x, 2)=genome_length;
-   genome_compo = randi(Pmax,genome_length,1);
+   %set genome length
+   div_mat(x,2)=randi(Gmax);
+   %all organisms have a primary mechanism for growth
+   %randomly choose this from set of rxns
+   div_mat(x,randi(n_ma_op_rxns)+2)=1;
+   %other rxns have probability of co-occurring
+   %set this by the total number of genes in the genome
+   %larger genomes have high probability of more genes
+   %smaller genomes have lower probability of additional genes
+   %10 other possible genes
+   for og = 1: n_ma_op_rxns
+	if og == find(div_mat(x,3:end))
+		%leave it alone
+		div_mat(x,og+2)=1;
+	else
+		%add additional genes based on size of genome
+		%more genes, smaller likelihood of additional genes
+		if randi(Gmax-div_mat(x,2)+1) == 1
+			div_mat(x,og+2)=1;
+		end
+	end
+   end
 %   % set up the rows of div_mat according to genome composition
 %   %glut1 is gene 13
 %   if ismember(13,genome_compo)
 %      %cox is gene 1
-      if ismember(1,genome_compo)
-         div_mat(x,3)=1;
-      end
-%      %nar is gene 2
-      if ismember(2,genome_compo)
-         div_mat(x,4)=1;
-      end
-%      %nir is gene 3
-      if ismember(3, genome_compo)
-         div_mat(x,5)=1;
-      end
-%      %nrf is gene 4
-     if ismember(4, genome_compo)
-         div_mat(x, 6)=1;
-      end
-%      %dsr is gene 5
-      if ismember(5, genome_compo)
-         div_mat(x, 7)=1;
-      end
-%   end
-%   %rbcl is gene 6
-%   if ismember(6, genome_compo)
-%      %nap is gene 7 
-      if ismember(6, genome_compo)
-         div_mat(x, 8)=1;
-      end
-%      %sox is gene 8
-      if ismember(7, genome_compo)
-         div_mat(x, 9)=1;
-      end
-%      %amoA is gene 9
-      if ismember(8, genome_compo)
-         div_mat(x, 10)=1;
-      end
+%      if ismember(1,genome_compo)
+%         div_mat(x,3)=1;
+%      end
+%%      %nar is gene 2
+%      if ismember(2,genome_compo)
+%         div_mat(x,4)=1;
+%      end
+%%      %nir is gene 3
+%      if ismember(3, genome_compo)
+%         div_mat(x,5)=1;
+%      end
+%%      %nrf is gene 4
+%     if ismember(4, genome_compo)
+%         div_mat(x, 6)=1;
+%      end
+%%      %dsr is gene 5
+%      if ismember(5, genome_compo)
+%         div_mat(x, 7)=1;
+%      end
+%%   end
+%%   %rbcl is gene 6
+%%   if ismember(6, genome_compo)
+%%      %nap is gene 7 
+%      if ismember(6, genome_compo)
+%         div_mat(x, 8)=1;
+%      end
+%%      %sox is gene 8
+%      if ismember(7, genome_compo)
+%         div_mat(x, 9)=1;
+%      end
+%%      %amoA is gene 9
+%     if ismember(8, genome_compo)
+%         div_mat(x, 10)=1;
+%      end
 %      %hzo is gene 10
-      if ismember(9, genome_compo)
-         div_mat(x,11)=1;
-      end
+%      if ismember(9, genome_compo)
+%         div_mat(x,11)=1;
+%      end
 %      %nor is gene 11
-      if ismember(10, genome_compo)
-         div_mat(x, 12)=1;
-      end
-	%sdp is gene 11
-      if ismember(11, genome_compo)
-	 div_mat(x, 13)=1;
-      end
+%      if ismember(10, genome_compo)
+%         div_mat(x, 12)=1;
+%      end
+%	%sdp is gene 11
+%      if ismember(11, genome_compo)
+%	 div_mat(x, 13)=1;
+%      end
 %   end
 end
 
@@ -271,7 +290,7 @@ n_total_div = n_x * Cmax;
 %make the starting matrix
 div0=ones(n_x, Cmax);
 %scale by Cmax, so the starting number of gene copies is more comparable
-div0=div0/Cmax;
+div0=div0/(Cmax*10);
 
 %% Define the flux functions
 
