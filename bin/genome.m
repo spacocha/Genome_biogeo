@@ -258,7 +258,11 @@ for x = 1: Cmax
 %   end
 end
 
-
+%reduce the matrix and Cmax by any rows that are 0
+%While these organisms would be present, they don't contribute to gene abundance
+div_mat(~any(div_mat(:,3:end)'), :)=[];
+%Figure out new Cmax
+[Cmax, rates_plus_2]=size(div_mat);
 n_total_chem = n_x * n_species;
 %for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
 n_total_div = n_x * Cmax;
