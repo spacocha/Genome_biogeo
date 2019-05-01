@@ -263,10 +263,16 @@ end
 div_mat(~any(div_mat(:,3:end)'), :)=[];
 %Figure out new Cmax
 [Cmax, rates_plus_2]=size(div_mat);
+
+
 n_total_chem = n_x * n_species;
 %for now diversity remains constant so div_mat doesn't change, but the number of organisms of each does
 n_total_div = n_x * Cmax;
+%make the starting matrix
 div0=ones(n_x, Cmax);
+%scale by Cmax, so the starting number of gene copies is more comparable
+div0=div0/Cmax;
+
 %% Define the flux functions
 
 % -- rates --
