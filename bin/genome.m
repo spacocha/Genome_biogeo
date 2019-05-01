@@ -264,7 +264,7 @@ div0=ones(n_x, Cmax);
 % This function takes a row from the concentration matrix (i.e., a
 % horizontal slice from the lake) and computes the rates of the mass action
 % and primary oxidation reactions
-function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
+function [ma_op_rates_adj, ma_op_deltaG, Y] = rates(concs_row)
     %to change this to dynamic community, we need to pass comunity too
     %Community will change like concs will change
     %it will be just as dynamic 
@@ -339,7 +339,8 @@ function [ma_op_rates, ma_op_deltaG, Y] = rates(concs_row, Gamma)
 	half_sat_eq_1 = rdivide(ma_op_reac1,plus(ma_op_reac1,ma_op_half_sat_1));
 	half_sat_eq_2 = rdivide(ma_op_reac2,plus(ma_op_reac2,ma_op_half_sat_2));
 	hs_inhib_eq = rdivide(ma_op_hs_inhib,plus(ma_op_inhib,ma_op_hs_inhib));
-        ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq)))));
+	%ma_op_rates provides the chemical potential, multiply by Gamma after adjusting for best metabolism
+        ma_op_rates_adj=times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, times(half_sat_eq_2, hs_inhib_eq))));
 	%ma_op_rates=times(Gamma,times(Ft,times(ma_op_sp_growth_rate, times(half_sat_eq_1, half_sat_eq_2))));
 %        ma_op_rates_mat(x, :)=ma_op_rates;
 
@@ -376,12 +377,23 @@ function [merged_fluxes] = flux(~, merged_vector)
     %conc_fluxes(end, s('CH4')) = conc_fluxes(end, s('CH4')) + methane_source;
     
     for x = 1: n_x
-%        %set 'null' to 1 for Q calculation, so it doesn't influence deltaG
-	%Each species has unchaning a vecotr of genes
-	%If the community diversity is dynamic too, it needs to be treated differently
-        Gamma=sum(div(x, :)'.*div_mat(:,3:end));
-        [ma_op_rates, ma_op_deltaG, Y] = rates(concs(x, :), Gamma);
-
+        %calculate the potential for each reaction, given the observed chemistry
+        [ma_op_rates_adj, ma_op_deltaG, Y] = rates(concs(x, :));
+	%Now figure out which process is best for each individual
+	%div_mat(:, 3:end) is the unchanging set of genes in the genome
+	%determine which is highest energy
+	energy_yield_mat=ma_op_rates_adj.*div_mat(:,3:end);
+	[maxey, ind]=max(energy_yield_mat');
+	%Make a new expression matrix with only the genes on from the highest process
+	expression_mat=zeros(Cmax, n_ma_op_rxns);
+	%change only index values in ind to 1 if the gene exists in div_mat
+	for i = 1 : Cmax
+		expression_mat(i,ind(i))=1*div_mat(i,ind(i)+2);
+	end
+	%Gamma is the rate of processes from expressed genes 
+	Gamma=sum(div(x, :)'.*expression_mat);
+	ma_op_rates=times(Gamma,ma_op_rates_adj);
+	
         % apply the mass action rates
 	%Based on Equation 3 of Reed et al 
 	%removing reactants
