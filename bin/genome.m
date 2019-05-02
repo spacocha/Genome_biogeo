@@ -6,7 +6,7 @@ function [time_slices, y, div_mat, end_rates_mat] = genome(t_max, Cmax, Pmax, Gm
 n_x = 17;   % number of compartments
 n_time_slices = 100;
 %t_max=100.0;
-%Cmax=15;
+Cmax=12;
 %Pmax=15;
 %Gmax=15;
 carbon_precipitation = 0.5;
@@ -184,46 +184,62 @@ ma_op_deltaG0 = ma_op_rxns(:, 18)';
 % matrix structre [genome_copies, genome_length, cox, nar, nir, nrf, dsr nap, sox, amo, hzo, nor, sdp]
 % Foreach row from 1-Cmax
 % genome_copies = 1 to start
-div_mat=zeros(Cmax, n_ma_op_rxns+2);
+%div_mat=zeros(Cmax, n_ma_op_rxns+2);
 %Set up temp structure for now with each function represented once
-%div_mat(1,3)=1;
-%div_mat(2,4)=1;
-%div_mat(3,5)=1;
-%div_mat(4,6)=1;
-%div_mat(5,7)=1;
-%div_mat(6,8)=1;
-%div_mat(7,9)=1;
-%div_mat(8,10)=10;
-%div_mat(9,11)=0;
-%div_mat(10,12)=10;
+%All organisms have the same size genome, except one, with larger and more functions
+div_mat=zeros(Cmax, n_ma_op_rxns+2);
+%set community composition to 1 for each
+div_mat(:,1)=1;
+%set genome size to 25
+div_mat(:,2)=25;
+%each organisms has one metabolism
+div_mat(1,3)=1;
+div_mat(2,4)=1;
+div_mat(3,5)=1;
+div_mat(4,6)=1;
+div_mat(5,7)=1;
+div_mat(6,8)=1;
+div_mat(7,9)=1;
+div_mat(8,10)=10;
+div_mat(9,11)=0;
+div_mat(10,12)=10;
 %turn off sdp by removing genes from the community
-%div_mat(11,13)=0;
+div_mat(11,13)=0;
+
+%one test org has larger genome and more functions, how does it change?
+div_mat(12,2)=75;
+div_mat(12,3)=1;
+div_mat(12,10)=1;
+
 %This will be for random structure
-for x = 1: Cmax
+%for x = 1: Cmax
 %   %set the copies to 1;
-   div_mat(x, 1)=1;
-   %set genome length
-   div_mat(x,2)=randi(Gmax);
-   %all organisms have a primary mechanism for growth
-   %randomly choose this from set of rxns
-   div_mat(x,randi(n_ma_op_rxns)+2)=1;
-   %other rxns have probability of co-occurring
-   %set this by the total number of genes in the genome
-   %larger genomes have high probability of more genes
-   %smaller genomes have lower probability of additional genes
-   %10 other possible genes
-   for og = 1: n_ma_op_rxns
-	if og == find(div_mat(x,3:end))
-		%leave it alone
-		div_mat(x,og+2)=1;
-	else
-		%add additional genes based on size of genome
-		%more genes, smaller likelihood of additional genes
-		if randi(Gmax-div_mat(x,2)+1) == 1
-			div_mat(x,og+2)=1;
-		end
-	end
-   end
+%   div_mat(x, 1)=1;
+%   %set genome length
+%   div_mat(x,2)=randi(Gmax);
+%   %all organisms have a primary mechanism for growth
+%   %randomly choose this from set of rxns
+%   div_mat(x,randi(n_ma_op_rxns)+2)=1;
+%   %other rxns have probability of co-occurring
+%   %set this by the total number of genes in the genome
+%   %larger genomes have high probability of more genes
+%   %smaller genomes have lower probability of additional genes
+%   %10 other possible genes
+%   for og = 1: n_ma_op_rxns
+%	if og == find(div_mat(x,3:end))
+%		%leave it alone
+%		div_mat(x,og+2)=1;
+%	else
+%		%add additional genes based on size of genome
+%		%more genes, smaller likelihood of additional genes
+%		if randi(Gmax-div_mat(x,2)+1) == 1
+%			div_mat(x,og+2)=1;
+%		end
+%	end
+%  end
+%end
+
+%%This is old, remove eventually
 %   % set up the rows of div_mat according to genome composition
 %   %glut1 is gene 13
 %   if ismember(13,genome_compo)
@@ -275,7 +291,7 @@ for x = 1: Cmax
 %	 div_mat(x, 13)=1;
 %      end
 %   end
-end
+%end
 
 %reduce the matrix and Cmax by any rows that are 0
 %While these organisms would be present, they don't contribute to gene abundance
