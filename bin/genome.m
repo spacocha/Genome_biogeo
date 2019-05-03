@@ -20,7 +20,7 @@ carrying_capacity=1000;
 %Maybe add this somehow with this from the amount of C removed 
 %or the amount of primary oxidaion with rates 1-5
 nitrogen_ratio=0.1;
-lambda=0.3; %0.001 from Reed et al table S2
+lambda=0.01; %0.001 from Reed et al table S2
 D_cell_plus=0.01;
 D_cell_minus=0.01;
 
@@ -200,14 +200,14 @@ div_mat(4,6)=1;
 div_mat(5,7)=1;
 div_mat(6,8)=1;
 div_mat(7,9)=1;
-div_mat(8,10)=10;
-div_mat(9,11)=0;
-div_mat(10,12)=10;
+div_mat(8,10)=1;
+div_mat(9,11)=1;
+div_mat(10,12)=1;
 %turn off sdp by removing genes from the community
-div_mat(11,13)=0;
+div_mat(11,13)=1;
 
 %one test org has larger genome and more functions, how does it change?
-div_mat(12,2)=75;
+div_mat(12,2)=25;
 div_mat(12,3)=1;
 div_mat(12,10)=1;
 
